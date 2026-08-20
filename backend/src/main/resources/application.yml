@@ -1,0 +1,59 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: campusnest
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://127.0.0.1:5433/campusnest}
+    username: ${DB_USERNAME:campusnest}
+    password: ${DB_PASSWORD:campusnest}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+campusnest:
+  jwt:
+    secret: ${JWT_SECRET:campusnest-dev-secret-key-change-in-production-min-32-chars}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: gpt-4o-mini
+  blockchain:
+    enabled: ${BLOCKCHAIN_ENABLED:false}
+    private-key: ${BLOCKCHAIN_PRIVATE_KEY:}
+    rpc-url: ${BLOCKCHAIN_RPC_URL:https://rpc-amoy.polygon.technology}
+    contract-address: ${CONTRACT_ADDRESS:}
+    network-name: ${CHAIN_NETWORK:Polygon Amoy}
+    explorer-url: ${CHAIN_EXPLORER_URL:https://amoy.polygonscan.com}
+  admin:
+    email: ${ADMIN_EMAIL:admin@campusnest.demo}
+    password: ${ADMIN_PASSWORD:admin123}
+    name: ${ADMIN_NAME:CampusNest Admin}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: h2
+  datasource:
+    url: jdbc:h2:mem:campusnest;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true

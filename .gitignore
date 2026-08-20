@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/target/
+
+# Build
+.next/
+out/
+dist/
+*.class
+*.jar
+*.war
+
+# Env
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+# Maven wrapper / local Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Runtime / local config
+application-local.yml
+application-local.yaml
+# Debug / temporary files
+backend/*-errors.txt
+backend/startup-error.txt
+backend/test-errors.txt
+# Temporary frontend
+frontend/

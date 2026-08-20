@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: campusnest-db
+    environment:
+      POSTGRES_DB: campusnest
+      POSTGRES_USER: campusnest
+      POSTGRES_PASSWORD: campusnest
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U campusnest -d campusnest" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

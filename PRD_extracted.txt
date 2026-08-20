@@ -1,0 +1,374 @@
+CampusNest
+Product Requirements Document — Functional Hackathon MVP
+AI-Powered Student Accommodation Marketplace with Verified Listings, Live Availability & Blockchain-Backed Verification
+1. Document Purpose
+This PRD defines the functional CampusNest MVP to be built and deployed for the hackathon. CampusNest is a two-sided accommodation platform: students search for accommodation while property owners/managers list and manage properties. The MVP combines personalized AI recommendations, verified listings, current vacancy information, property comparison, and a blockchain-backed record of CampusNest verification events.
+2. Product Vision
+CampusNest helps a student moving to an unfamiliar city find accommodation that fits their needs, understand the real cost and commute, see current availability, and understand what CampusNest has verified about a listing. At the same time, property listers receive a structured way to publish properties, complete the CampusNest verification workflow, and maintain current occupancy.
+Tagline: Find. Compare. Verify. Decide.
+3. Problem Statement
+Students relocating from another state or city for college often depend on scattered information from brokers, social groups, referrals, maps, and property platforms. They may struggle to compare rent versus actual monthly cost, commute, facilities, reviews, trust signals, and current vacancy. Property owners also lack a student-focused platform where verified listings and current availability can be presented in a structured way.
+4. Target Users
+Student / Accommodation Seeker: a student or other user searching for a PG, hostel, flat, or shared accommodation.
+Lister: PG owner, hostel operator, flat owner, or property manager who wants to publish and manage a listing.
+CampusNest Admin / Verifier: a trusted role that reviews listing verification requests and approves or rejects them.
+5. Core Product Model
+CampusNest has three product pillars:
+AI — helps answer: “Which available property fits me best?”
+Marketplace — answers: “Which verified properties are currently available, and what do they cost?”
+Trust + Blockchain — answers: “What did CampusNest verify, and can the verification record be independently checked?”
+Blockchain is not presented as proof that a physical property is inherently genuine or safe. It provides a tamper-evident record of a CampusNest verification event.
+6. High-Level User Journeys
+6.1 Student Journey
+Open CampusNest.
+Choose Student / Accommodation Seeker.
+Register or log in.
+Complete student profile and accommodation preferences.
+Search or request recommendations.
+System considers currently available listings and calculates match scores.
+Student sees ranked recommendations with AI-generated explanations.
+Student opens a property detail page.
+Student sees rent, effective monthly cost, commute, facilities, reviews, verification, and current vacancy.
+Student compares 2–3 properties.
+Student opens the verification record and blockchain transaction.
+Student shortlists/decides on an accommodation.
+6.2 Lister Journey
+Open CampusNest.
+Choose Lister / Property Owner.
+Register or log in.
+Create a property listing.
+Enter property, pricing, facilities, location, capacity, and availability information.
+Submit the listing for CampusNest verification.
+Admin reviews the verification request.
+If approved, the listing becomes verified and eligible for student discovery.
+CampusNest creates/registers the verification record and associates the blockchain transaction.
+Lister manages the listing and updates occupancy/availability.
+Students see the latest availability.
+6.3 Admin / Verification Journey
+Admin opens pending verification requests.
+Reviews submitted lister/property information.
+Approves or rejects the listing.
+On approval, creates a CampusNest verification record.
+Associates the verification hash and blockchain transaction.
+Verified listing becomes eligible for student discovery.
+7. MVP Scope
+7.1 P0 — Mandatory
+Two separate user entry/login experiences: Student/Seeker and Lister.
+Student profile and accommodation preferences.
+Lister profile and property listing creation.
+15 seeded demo properties for initial marketplace availability.
+Property search/filtering.
+Current occupancy and vacancy fields.
+Student-facing availability status.
+Deterministic match score.
+AI-generated recommendation explanation.
+Property details.
+Effective monthly cost calculation.
+Commute information.
+Facilities.
+Clearly labeled sample/demo reviews.
+Lister verification submission.
+Admin verification approval/rejection flow.
+Verified listing badge.
+Blockchain-backed verification record.
+Blockchain explorer link.
+2–3 property comparison.
+Deployed public application.
+End-to-end flow that a judge can use without team intervention.
+7.2 P1 — Only After P0 Works
+More advanced verification document handling.
+Live map integration.
+AI review summarization.
+Flatmate compatibility matching.
+Report listing workflow.
+More advanced admin analytics.
+Enhanced lister analytics.
+7.3 Explicitly Out of Scope
+Payments or online rent collection.
+In-app chat or messaging.
+NFTs, tokens, DAO, or cryptocurrency payments.
+Production-grade KYC/identity verification.
+Full fraud-detection system.
+Real-time GPS tracking of students or properties.
+Complete booking/lease management.
+Production-scale review verification.
+Complex decentralized identity.
+Full native mobile application.
+8. Student Portal Requirements
+8.1 Student Authentication
+Separate Student/Seeker entry point.
+Registration and login.
+Role must be stored so the user enters the correct portal.
+Authentication: email + password, hashed (never plaintext) storage. JWT or session token must carry the user’s role (Student / Lister / Admin). No hardcoded or UI-level role switch — the role is set at registration and enforced server-side on every request. OAuth/social login is out of scope.
+8.2 Student Profile
+Name.
+College.
+Budget minimum and maximum.
+Move-in date.
+Preferred locality.
+Accommodation type.
+Lifestyle/preferences: fixed tag set — Safety, Food Quality, Wi-Fi, Quiet Environment, Cleanliness, Proximity to Market. Multi-select; no free text.
+8.3 Search & Discovery
+Show verified and eligible listings.
+Show current vacancy status.
+Support basic budget/locality/accommodation-type filtering.
+Do not recommend properties that are full when availability is a requirement.
+8.4 Recommendation Results
+Each recommendation card should show:
+Property name.
+Match percentage.
+Rent.
+Effective monthly cost.
+Distance from college.
+Commute time/mode.
+Rating.
+Current vacancy.
+Verification status.
+1–2 sentence AI explanation.
+8.5 Property Details
+Property overview.
+Location/locality.
+Rent and deposit.
+Food, electricity, Wi-Fi, and maintenance costs.
+Dynamically calculated effective monthly cost.
+Facilities.
+Distance and commute.
+Current occupied/available count.
+Vacancy status.
+Sample/demo reviews.
+CampusNest verification information.
+Blockchain verification record.
+8.6 Comparison
+Student can select 2–3 properties and compare:
+Match score.
+Rent.
+Effective monthly cost.
+Deposit.
+Distance.
+Commute.
+Rating.
+Availability.
+Verification status.
+Important facilities.
+9. Lister Portal Requirements
+9.1 Lister Authentication
+Separate Lister/Property Owner entry point.
+Registration and login.
+Lister dashboard showing their own properties.
+9.2 Create Listing
+Property name.
+Property type: PG / Hostel / Flat / Shared accommodation.
+Address and locality.
+Description.
+Rent.
+Security deposit.
+Food cost.
+Electricity cost.
+Wi-Fi cost.
+Maintenance cost.
+Facilities.
+Distance/commute information: lister enters distance (km) and commute time (min) manually for the MVP; not auto-computed from coordinates.
+Total capacity.
+Occupied count.
+Available count.
+Property location coordinates (latitude/longitude): required for all 15 seeded demo properties. If a lister does not supply coordinates at creation, the listing stays in Draft until an admin or the lister adds them — coordinates are mandatory before a listing can be submitted for verification.
+9.3 Listing Status
+Draft.
+Submitted for verification.
+Under review.
+Verified.
+Rejected.
+Suspended: P1, not part of the MVP status enum. MVP status enum is exactly: Draft, Submitted for Verification, Under Review, Verified, Rejected.
+9.4 Occupancy Management
+Lister can update occupied count.
+Available count is calculated from total capacity minus occupied count.
+Student-facing availability reflects the latest stored value.
+Use simple status labels such as Available, Filling Fast, Almost Full, and Full.
+10. Verification System
+10.1 What CampusNest Verifies
+Lister information according to the hackathon verification workflow.
+Property information submitted by the lister.
+Address/location information.
+Capacity/listing information.
+No additional evidence types beyond the four listed above are in scope for the MVP. Any further evidence category (e.g. ownership documents, ID proof) is P1.
+The hackathon prototype must clearly communicate that this is a CampusNest verification workflow, not a universal guarantee of safety, legality, ownership, or physical authenticity.
+10.2 Verification Flow
+Lister → Submit Listing → Under Review → Admin Review → Approved/Rejected → Verified → Blockchain Record → Student Visibility
+10.3 Verification Badge
+Example:
+✓ CAMPUSNEST VERIFIED
+Lister information checked.
+Property information checked.
+Location/address checked.
+Verification date.
+Link to verification record.
+11. Blockchain Requirements
+11.1 Purpose
+Use blockchain to create a tamper-evident, independently inspectable record of a CampusNest verification event. Do not place sensitive personal information on-chain.
+11.2 Verification Record
+Property ID.
+Verification record hash.
+Timestamp.
+Transaction hash.
+Network name (e.g. testnet name) and deployed contract address — both fields are always shown, never conditionally hidden.
+11.3 Smart Contract
+Minimal concept:
+registerVerification(propertyId, recordHash)
+getVerification(propertyId)
+11.4 Student UI
+Display:
+Verified on-chain / verification recorded.
+Verification hash.
+Timestamp.
+Transaction hash.
+View on blockchain explorer.
+12. AI Recommendation System
+12.1 Deterministic Match Score
+Factor
+Weight
+Budget compatibility
+30%
+Distance / commute
+25%
+Trust / verification
+20%
+Facilities
+15%
+Lifestyle compatibility
+10%
+12.2 AI Responsibility
+Explain why a ranked property matches the student.
+Use only supplied property/student facts.
+Keep explanations concise and specific.
+Do not independently invent the numerical score.
+Do not invent availability, prices, facilities, reviews, or verification.
+12.3 AI Fallback
+For the golden demo profiles, prepared fallback recommendation explanations should exist so an external AI API outage does not break the core demo.
+13. Live Availability Model
+For MVP, 'live tracking' means live/current occupancy and vacancy status, not GPS tracking. The lister updates occupancy; the application stores the latest state; the student side displays the latest availability.
+Example:
+Lister: 18 occupied / 20 capacity → Student: 2 beds available
+Lister updates: 19 occupied / 20 capacity → Student: 1 bed available
+14. Data Model
+users: id, role, name, email, created_at.
+students: user_id, college, budget_min, budget_max, move_in_date, locality_pref, accommodation_type, lifestyle_tags.
+listers: user_id, profile information, verification status.
+properties: id, lister_id, name, type, address, locality, description, rent, deposit, food_cost, electricity_cost, wifi_cost, maintenance_cost, facilities (multi-select from a fixed tag list: WiFi, AC, Laundry, Meals Included, Power Backup, CCTV/Security, Housekeeping, Parking), distance_km, commute_time_min, commute_mode, capacity, occupied, available, rating (1–5, average of reviews), verification_status, verification_hash, verification_timestamp, blockchain_tx.
+reviews: id, property_id, rating (1–5 scale), category ratings (fixed set: cleanliness, safety, food, wifi, staff — each 1–5), text, sample/demo flag.
+verification_records: id, property_id, lister_id, verification_status, record_hash, timestamp, blockchain_tx, reviewed_by.
+recommendations: can be computed on demand; storage is optional.
+15. Core API / Backend Capabilities
+Capability
+Purpose
+POST /auth/register
+Register student or lister.
+POST /auth/login
+Authenticate user.
+GET /properties
+Retrieve/filter eligible properties.
+GET /properties/{id}
+Property details, reviews, availability, verification.
+POST /students/profile
+Create/update student preferences.
+POST /recommendations
+Return ranked properties + AI explanation.
+POST /listings
+Create lister property listing.
+PUT /listings/{id}
+Update listing information.
+PUT /listings/{id}/availability
+Update occupancy/availability.
+POST /listings/{id}/verify
+Submit listing for verification.
+GET /verification/{propertyId}
+Retrieve verification record.
+POST /admin/verification/{id}/approve
+Approve verification.
+POST /admin/verification/{id}/reject
+Reject verification.
+16. Deployment & Technical Principles
+The MVP must be deployable and accessible through a public URL.
+Backend/business-logic layer: Java/Spring Boot. This is a decision, not an option.
+Frontend: Next.js + TypeScript + Tailwind CSS + shadcn/ui, deployed to a public URL accessible in any browser — no native app or browser extension required.
+PostgreSQL/Supabase can provide persistent storage.
+AI API keys and blockchain private keys must remain server-side and be stored as environment variables.
+Frontend users must not be able to directly modify verification fields.
+Sensitive personal information must not be stored on-chain.
+The application should have graceful loading, empty, and error states.
+17. Security & Trust Requirements
+Role-based access: students cannot access lister/admin operations.
+Listers can only modify their own listings.
+Verification status cannot be changed directly by a normal lister.
+Admin verification actions must be protected.
+No secret/API/private-key values in frontend code.
+Validate listing, occupancy, budget, and profile inputs.
+Do not expose unnecessary personal information in public property pages.
+18. Demo Dataset
+15 fictional/demo properties in Noida/Greater Noida.
+At least 3 golden student profiles.
+Multiple vacancy states.
+Multiple verification states.
+2–3 sample reviews per property, clearly labeled as sample/demo.
+At least one property with a real testnet verification transaction.
+At least one property whose vacancy can be changed live during the demo.
+19. Definition of Done — MVP
+A judge can open the deployed public URL.
+The judge can choose Student or Lister.
+A lister can create or access a property listing.
+A listing can move through the verification workflow.
+An approved listing can appear to students.
+The lister can update occupancy.
+The student sees current availability.
+The student can create a profile and preferences.
+The student receives ranked recommendations.
+The numerical match score is deterministic.
+The AI explains the recommendation.
+The student can open a property.
+Effective monthly cost is calculated.
+Commute, facilities, reviews, and vacancy are visible.
+The student can compare 2–3 properties.
+The student can see CampusNest verification.
+The student can open the blockchain verification record.
+The complete journey works without a team member manually controlling the app.
+20. P0 / P1 Cut Strategy
+If the team is behind schedule, cut in this order:
+Flatmate matching.
+Live maps.
+Advanced review AI.
+Advanced admin analytics.
+Complex document upload/KYC-like flows.
+Extra UI animations and cosmetic features.
+Do not cut:
+Two user roles.
+Student discovery.
+Lister listing.
+Availability.
+Match score.
+AI explanation.
+Property details.
+Verification.
+Blockchain verification record.
+Deployed end-to-end flow.
+21. Hackathon Demo Story
+Start as a lister and create/show a property with capacity.
+Submit the property for CampusNest verification.
+Show admin approval and the verified state.
+Show the verification record and blockchain transaction.
+Switch to Student.
+Enter NIET, a ₹6,000–₹8,000 budget, and priorities such as safety, commute, and food.
+Show a top recommendation with a 90%+ match score and AI explanation.
+Open the property and show effective cost, commute, facilities, sample reviews, verification, and current vacancy.
+Compare it with another property.
+Return to the lister and change occupancy from 18/20 to 19/20.
+Show the student-side availability changing to 1 bed available.
+Close with: 'Find. Compare. Verify. Decide.'
+22. Product Positioning
+CampusNest is not positioned as another generic property listing website. Existing platforms already provide discovery. CampusNest focuses on the decision and trust layer for students: matching students to currently available listings, showing the effective cost and commute, exposing the verification status, and making the verification record independently checkable.
+23. Honest Product Limitations
+The hackathon uses seeded/demo property and review data.
+Verification is based on the defined CampusNest prototype workflow and is not a guarantee of physical safety or legal ownership.
+Blockchain records the verification event; it does not independently inspect the property.
+Availability is only as current as the lister's latest update.
+The MVP is a functional hackathon product, not a production marketplace.
+24. One-Line Product Definition
+CampusNest is a two-sided accommodation platform where verified listers manage current property availability, while students discover and compare available stays through explainable AI recommendations and independently checkable verification records.

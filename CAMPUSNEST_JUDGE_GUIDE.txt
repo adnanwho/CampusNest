@@ -1,0 +1,574 @@
+CAMPUSNEST - JUDGE EXPLANATION GUIDE
+====================================
+
+Purpose
+-------
+CampusNest is a student accommodation marketplace backend. It helps students
+discover verified accommodation, compare properties, understand the real
+monthly cost, and receive personalized recommendations. Property listers can
+create listings and update occupancy. Administrators can review listings and
+record verification results with a tamper-evident hash and an optional
+blockchain transaction.
+
+IMPORTANT IMPLEMENTATION STATUS
+-------------------------------
+The current repository contains the Spring Boot backend. No frontend source
+files such as React, Next.js, TypeScript, HTML, or CSS are currently present in
+the workspace. The implementation plan describes a planned Next.js frontend,
+but this guide explains what is actually implemented in the backend today.
+
+
+1. QUICK PROJECT SUMMARY
+------------------------
+
+Project name: CampusNest
+Project type: REST API backend for a student accommodation platform
+Main purpose: Connect students with verified properties near their college
+Main backend port: 8080
+Base URL: http://localhost:8080/api
+Database: PostgreSQL in normal mode; H2 in-memory database with the h2 profile
+Authentication: Stateless JWT bearer tokens
+User roles: STUDENT, LISTER, ADMIN
+
+The main request flow is:
+
+Client -> REST Controller -> Service -> Repository -> Database
+                                     |
+                                     +-> Recommendation, availability,
+                                         cost, or blockchain business logic
+
+Spring Boot starts the application, creates the beans, configures security,
+connects to the database, runs Flyway migrations, and seeds demo data.
+
+
+2. TECHNOLOGIES USED AND WHY
+----------------------------
+
+Java 17
+  The programming language used for the backend. Java provides strong typing,
+  object-oriented structure, mature database libraries, and good support for
+  enterprise web applications.
+
+Spring Boot 3.3.5
+  The main backend framework. It provides application startup, dependency
+  injection, auto-configuration, embedded web-server support, and integration
+  with the other Spring modules.
+
+Spring Web / MVC
+  Used to create REST endpoints. Classes marked with @RestController receive
+  HTTP requests and return Java objects that Spring serializes as JSON.
+
+Spring Security
+  Protects endpoints and enforces roles. It is configured for stateless
+  authentication, so the server does not keep an HTTP session for each user.
+
+JWT and JJWT 0.12.6
+  JWT means JSON Web Token. After successful registration or login, the backend
+  signs a token containing the user id, role, name, email, issue time, and
+  expiry time. The client sends it in:
+
+      Authorization: Bearer <token>
+
+  The JwtAuthFilter validates the signature and loads the user before the
+  request reaches protected application code.
+
+Spring Data JPA / Hibernate
+  Maps Java entity classes to database tables and provides repository methods
+  for persistence. The project entities include User, StudentProfile,
+  ListerProfile, Property, Review, and VerificationRecord.
+
+PostgreSQL 16
+  The normal relational database. Docker Compose starts PostgreSQL on local
+  host port 5433 and container port 5432.
+
+H2
+  An in-memory database option for lightweight local testing. It can be used
+  with the Spring profile named h2.
+
+Flyway
+  Handles database schema versioning. The migration file
+  backend/src/main/resources/db/migration/V1__init_schema.sql creates the
+  tables and indexes. Hibernate is set to validate the schema rather than
+  silently changing it.
+
+Maven and Maven Wrapper
+  Maven manages Java dependencies and the build lifecycle. The Maven Wrapper
+  files mvnw and mvnw.cmd allow the project to build even when Maven is not
+  globally installed.
+
+Web3j 4.12.2
+  Java library used for optional Polygon-compatible blockchain communication.
+  It can connect to an RPC URL, load the verification smart contract, and send
+  a verification transaction.
+
+Lombok
+  Reduces repetitive Java code such as constructors, builders, and getters.
+  For example, @RequiredArgsConstructor creates constructors for injected
+  final fields.
+
+Docker Compose
+  Starts the local PostgreSQL dependency with one command and stores its data
+  in a named Docker volume.
+
+
+3. BACKEND PACKAGE STRUCTURE
+----------------------------
+
+com.campusnest
+  CampusNestApplication.java
+    Application entry point. @SpringBootApplication enables component scanning
+    and starts Spring Boot.
+
+auth/
+  Registration, login, password hashing, JWT creation, JWT validation, and
+  user loading.
+
+student/
+  Student profile read and update operations.
+
+lister/
+  Lister property creation, editing, occupancy updates, and submission for
+  verification.
+
+property/
+  Student search, property details, recommendations, and comparison.
+
+recommendation/
+  Deterministic weighted scoring and human-readable recommendation explanation.
+
+admin/
+  Admin queue and approve/reject verification operations.
+
+verification/
+  Public lookup of the latest verification record for a property.
+
+blockchain/
+  SHA-256 record hashing and optional Web3j smart-contract registration.
+
+common/
+  Effective cost, availability, and tag handling helpers.
+
+model/
+  JPA entities and enums representing the domain.
+
+repository/
+  Spring Data repository interfaces used to query and save database records.
+
+config/
+  Demo data seeding and consistent JSON error responses.
+
+
+4. HOW THE BACKEND STARTS
+--------------------------
+
+1. The main method calls SpringApplication.run(CampusNestApplication.class).
+2. Spring scans the com.campusnest package and creates controllers, services,
+   repositories, filters, and configuration beans.
+3. application.yml configures port 8080 and the /api context path.
+4. Flyway checks and applies database migrations.
+5. DemoDataSeeder creates demo users and properties when needed.
+6. The embedded server begins accepting requests.
+
+Run PostgreSQL:
+
+    docker compose up -d postgres
+
+Run the backend from the backend directory on Windows:
+
+    .\mvnw.cmd spring-boot:run
+
+Build the backend:
+
+    .\mvnw.cmd clean package
+
+Run with H2 instead of PostgreSQL:
+
+    .\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=h2
+
+The database connection and secrets can be overridden with environment
+variables. Important variables include DATABASE_URL, DB_USERNAME,
+DB_PASSWORD, JWT_SECRET, JWT_EXPIRATION_MS, CORS_ORIGINS, and the blockchain
+settings.
+
+
+5. AUTHENTICATION AND AUTHORIZATION
+-----------------------------------
+
+Registration:
+  POST /api/auth/register
+
+Login:
+  POST /api/auth/login
+
+Admin registration is intentionally rejected. A new STUDENT gets a student
+profile, and a new LISTER gets a lister profile. Passwords are never stored as
+plain text; AuthService encodes them with BCryptPasswordEncoder.
+
+After login, AuthService creates a signed JWT. On later requests,
+JwtAuthFilter:
+
+1. Reads the Authorization header.
+2. Checks that it starts with Bearer.
+3. Validates the token signature and expiration.
+4. Reads the email from the token subject.
+5. Loads the current user from the database.
+6. Places the authenticated principal in Spring Security's context.
+
+Role rules:
+  /api/auth/**                  Public
+  GET /api/verification/**      Public
+  /api/admin/**                 ADMIN only
+  /api/listings/**              LISTER only
+  /api/students/**              STUDENT only
+  /api/recommendations         STUDENT only
+  /api/properties/**            STUDENT only
+  Everything else               Authenticated users only
+
+CSRF is disabled because this is a stateless token API, not a session-based
+browser form application. CORS is configured to allow the frontend origin,
+which defaults to http://localhost:3000.
+
+
+6. REST API MAP
+---------------
+
+Authentication
+  POST /api/auth/register       Create a student or lister account
+  POST /api/auth/login          Authenticate and receive a JWT
+
+Student
+  GET  /api/students/me         Read the logged-in student's profile
+  PUT  /api/students/me         Update college, budget, date, locality, type,
+                                and lifestyle tags
+  GET  /api/properties          Search verified and available properties
+  GET  /api/properties/{id}     Read verified property details and reviews
+  GET  /api/recommendations     Search using the student's saved preferences
+  POST /api/properties/compare  Compare two or three property IDs
+
+Lister
+  GET  /api/listings/mine       List the current lister's properties
+  POST /api/listings            Create a draft property listing
+  PUT  /api/listings/{id}       Edit an owned, non-verified listing
+  PUT  /api/listings/{id}/availability
+                                Update occupied beds and available beds
+  POST /api/listings/{id}/verify
+                                Submit a draft or rejected listing for review
+
+Admin
+  GET  /api/admin/verifications/pending
+                                List submitted or under-review properties
+  POST /api/admin/verifications/{id}/review
+                                Move a pending property to under review
+  POST /api/admin/verifications/{id}/approve
+                                Verify the property and create its record
+  POST /api/admin/verifications/{id}/reject
+                                Reject it with a reason
+
+Verification
+  GET /api/verification/{propertyId}
+                                Publicly read the latest verification record
+
+
+7. STUDENT EXPERIENCE: REQUEST FLOW
+------------------------------------
+
+1. A student registers or logs in and receives a JWT.
+2. The student saves preferences through PUT /students/me.
+3. The student requests /recommendations or /properties.
+4. PropertyService loads the student's profile and applies optional filters.
+5. PropertyRepository returns only VERIFIED properties with availability.
+6. RecommendationService calculates a score for every returned property.
+7. Results are sorted from highest match score to lowest.
+8. The response contains property information, score, and an explanation.
+
+Property detail requests reject unverified properties. Comparison requires
+between two and three property IDs and calculates each score against the
+logged-in student's profile.
+
+
+8. RECOMMENDATION ALGORITHM
+---------------------------
+
+The score is deterministic, meaning the same student profile and property
+data produce the same result. It does not depend on an unpredictable model.
+
+    Score = 0.30 Budget + 0.25 Distance + 0.20 Trust
+          + 0.15 Facilities + 0.10 Lifestyle
+
+Each factor is evaluated from 0 to 100 and the final result is rounded and
+limited to the range 0 to 100.
+
+Budget, 30 percent:
+  Compares effective monthly cost with the student's minimum and maximum
+  budget. A cost inside the range receives 100. A cost outside the range is
+  reduced according to its distance from the nearest budget boundary.
+
+Distance, 25 percent:
+  Up to 1.5 km scores 100, up to 3 km scores 85, up to 6 km scores 65, up to
+  10 km scores 45, and farther distances score 25. Missing distance receives
+  a neutral score of 65.
+
+Trust, 20 percent:
+  A VERIFIED property scores 100. Other statuses score 40.
+
+Facilities, 15 percent:
+  Stored facility tags are parsed and converted to a score. More facilities
+  increase the score, with a maximum of 100.
+
+Lifestyle, 10 percent:
+  Student lifestyle tags are matched against property facilities,
+  description, and locality. The percentage of requested tags found becomes
+  the lifestyle score.
+
+The explanation is currently generated by deterministic Java rules. It is not
+currently calling the configured OpenAI setting. For scores of 85 or more it
+emphasizes budget, commute, and facilities; for scores of 70 or more it
+mentions effective cost and the balance of factors; lower scores explain that
+some preferences may be compromised.
+
+
+9. EFFECTIVE COST AND AVAILABILITY
+----------------------------------
+
+Effective monthly cost is calculated as:
+
+    Rent + Food + Electricity + WiFi + Maintenance
+
+The deposit is stored separately and is not included in the monthly effective
+cost calculation.
+
+Available beds are calculated as:
+
+    max(0, Capacity - Occupied)
+
+Availability labels are based on the available-to-capacity ratio:
+  AVAILABLE       More than 50 percent available
+  FILLING_FAST    More than 25 percent and up to 50 percent available
+  ALMOST_FULL     More than 0 and up to 25 percent available
+  FULL            Zero available, or invalid zero capacity
+
+When a lister updates occupancy, ListingService validates that occupied beds
+do not exceed capacity, refreshes the available count, and saves the property.
+
+
+10. LISTING VERIFICATION AND BLOCKCHAIN
+---------------------------------------
+
+The lifecycle is:
+
+    DRAFT -> SUBMITTED_FOR_VERIFICATION -> UNDER_REVIEW
+                                      -> VERIFIED or REJECTED
+
+Lister submission requires latitude and longitude. An admin can inspect the
+pending queue, mark a property under review, approve it, or reject it with a
+reason.
+
+On approval:
+1. The backend creates a canonical text payload from property id, lister id,
+   timestamp, and VERIFIED status.
+2. It calculates a SHA-256 hash and stores it with the property.
+3. BlockchainService attempts to register the property id and hash.
+4. The property is marked VERIFIED and the verification record is saved.
+5. The response can expose the network, contract, transaction hash, and
+   explorer link.
+
+Blockchain modes:
+  Disabled/default:
+    The current default is BLOCKCHAIN_ENABLED=false. A mock transaction id is
+    returned so the rest of the verification workflow can be demonstrated
+    locally without a wallet, gas, or RPC access.
+
+  Enabled:
+    Web3j connects to the configured RPC URL, signs a transaction using the
+    configured private key, loads VerificationRegistryContract, and calls
+    registerVerification. The default configured network name is Polygon Amoy.
+
+The SHA-256 hash is the tamper-evident part: changing the source values would
+produce a different hash. The blockchain transaction is the external record
+when the integration is enabled.
+
+
+11. DATABASE DESIGN
+-------------------
+
+users
+  Login identity, role, name, email, BCrypt password hash, and creation time.
+
+student_profiles
+  College, budget range, move-in date, locality, accommodation type, lifestyle
+  tags, and optional golden profile key.
+
+lister_profiles
+  Lister organization and phone information.
+
+properties
+  Address, location, rent, deposit, monthly cost components, facilities,
+  commute, capacity, occupancy, rating, and verification state.
+
+reviews
+  Property ratings and category ratings. Seeded reviews are marked as demo
+  data with is_demo=true.
+
+verification_records
+  Property, lister, status, record hash, timestamp, blockchain transaction,
+  reviewing admin, and rejection reason.
+
+Foreign keys preserve relationships and indexes speed up queries by lister,
+verification status, locality, property, and verification record.
+
+
+12. DEMO DATA AND CREDENTIALS
+-----------------------------
+
+The DemoDataSeeder runs at application startup. It creates demo users and
+properties only when needed, and seeds 15 Greater Noida / Noida properties
+when the database has no properties.
+
+Demo admin:
+  Email: admin@campusnest.demo
+  Password: admin123
+
+Demo lister:
+  Email: lister@campusnest.demo
+  Password: lister123
+
+Demo students:
+  aarav@campusnest.demo / student123
+  priya@campusnest.demo / student123
+  rohan@campusnest.demo / student123
+
+The seeded student profiles represent NIET, Sharda University, and Galgotias
+University use cases. Shree Balaji Boys PG is seeded as a live occupancy demo
+with 18 occupied beds out of 20.
+
+Seeded verified properties receive demo verification hashes and mock-seed
+transaction values. These are useful for a local presentation and should not
+be described as real public-chain transactions unless blockchain mode was
+actually enabled and a real transaction was confirmed.
+
+
+13. ERROR HANDLING AND VALIDATION
+---------------------------------
+
+Request DTOs use Jakarta Bean Validation. Examples include required fields and
+valid ranges. StudentService rejects a minimum budget greater than maximum.
+ListingService rejects occupancy greater than capacity and prevents users from
+editing another lister's property.
+
+GlobalExceptionHandler converts common failures into JSON such as:
+
+    {"error":"Listing not found"}
+
+It handles status exceptions, validation failures, and unexpected exceptions.
+This gives a frontend a predictable response format.
+
+
+14. GOOD SHORT ANSWERS FOR JUDGES
+---------------------------------
+
+Q: What is the core problem you solve?
+A: Students need a trustworthy way to find accommodation near their college.
+   CampusNest combines verified listings, real monthly cost, live occupancy,
+   and preference-based recommendations in one platform.
+
+Q: Why did you use Spring Boot?
+A: Spring Boot gives us a production-oriented Java REST framework with strong
+   security, database, validation, dependency injection, and testing support.
+
+Q: How is the backend organized?
+A: Controllers handle HTTP, services hold business logic, repositories access
+   the database, and model classes represent the data. This separation keeps
+   each layer focused and testable.
+
+Q: How do you prevent unauthorized access?
+A: Login returns a signed JWT. A filter validates each bearer token, and Spring
+   Security checks the role before allowing the request to reach the endpoint.
+
+Q: Is the recommendation AI?
+A: The current scoring engine is deterministic and explainable. It uses five
+   weighted factors, so we can justify every score. The explanation text is
+   rule-based in the current backend; the configured OpenAI property is not
+   currently invoked by RecommendationService.
+
+Q: How do you calculate affordability?
+A: We calculate effective monthly cost as rent plus food, electricity, WiFi,
+   and maintenance. Deposit is shown separately because it is an upfront cost.
+
+Q: How is availability kept live?
+A: A lister changes occupied beds. The backend validates the count, calculates
+   capacity minus occupancy, stores available beds, and derives a status label.
+
+Q: What does blockchain add?
+A: Approval creates a SHA-256 record hash for the property verification event.
+   With blockchain enabled, that hash is registered against the property id on
+   the configured Polygon-compatible contract. With it disabled, a mock
+   transaction keeps local demos working.
+
+Q: Why use PostgreSQL and Flyway together?
+A: PostgreSQL provides durable relational storage, while Flyway makes schema
+   changes repeatable and version-controlled. Hibernate validates the schema
+   instead of changing it unexpectedly.
+
+Q: How do you handle a failed blockchain call?
+A: The service logs the failure and returns a fallback transaction value so the
+   application workflow does not crash. In a production version, this should
+   be paired with an explicit pending/retry state and operational alerting.
+
+Q: What would you build next?
+A: Add the planned frontend, automated tests around scoring and verification,
+   stronger production secret management, real blockchain confirmation and
+   retry states, and an AI explanation integration only where it adds value.
+
+
+15. ONE-MINUTE PRESENTATION SCRIPT
+----------------------------------
+
+CampusNest is a Spring Boot REST backend for a verified student accommodation
+marketplace. Students authenticate with JWT, save their college, budget,
+locality, accommodation type, and lifestyle preferences, and receive verified
+properties ranked by a deterministic five-factor score. The backend also
+calculates effective monthly cost instead of showing rent alone, so students
+can compare realistic expenses. Listers manage their own properties and live
+occupancy, while admins review submitted listings. Approval generates a
+SHA-256 verification record and can register it on Polygon through Web3j. The
+application uses PostgreSQL with Flyway migrations, supports H2 for local
+testing, and includes seeded demo users and properties for a judge walkthrough.
+
+
+16. SOURCE FILES TO SHOW DURING A DEMO
+--------------------------------------
+
+Application startup:
+  backend/src/main/java/com/campusnest/CampusNestApplication.java
+
+Dependencies and versions:
+  backend/pom.xml
+
+Server and database configuration:
+  backend/src/main/resources/application.yml
+
+Security and role rules:
+  backend/src/main/java/com/campusnest/auth/SecurityConfig.java
+  backend/src/main/java/com/campusnest/auth/JwtAuthFilter.java
+
+Recommendation logic:
+  backend/src/main/java/com/campusnest/recommendation/RecommendationService.java
+
+Lister and occupancy workflow:
+  backend/src/main/java/com/campusnest/lister/ListingService.java
+
+Admin verification workflow:
+  backend/src/main/java/com/campusnest/admin/AdminVerificationService.java
+
+Blockchain and hashing:
+  backend/src/main/java/com/campusnest/blockchain/BlockchainService.java
+
+Database schema:
+  backend/src/main/resources/db/migration/V1__init_schema.sql
+
+Demo data:
+  backend/src/main/java/com/campusnest/config/DemoDataSeeder.java
+
+
+END OF GUIDE
+===========
