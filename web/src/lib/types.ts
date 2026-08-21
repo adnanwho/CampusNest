@@ -45,11 +45,7 @@ export interface Property {
   id: string;
   listerId: string;
   name: string;
-<<<<<<< HEAD
   type: PropertyType | string;
-=======
-  type: "PG" | "HOSTEL" | "FLAT" | "SHARED_ACCOMMODATION";
->>>>>>> origin/main
   address: string;
   locality: string;
   description: string;
@@ -61,7 +57,7 @@ export interface Property {
   electricityCost: number;
   wifiCost: number;
   maintenanceCost: number;
-  effectiveMonthlyCost: number;
+  effectiveMonthlyCost?: number;
   facilities: string[];
   distanceKm: number;
   commuteTimeMin: number;
@@ -69,15 +65,9 @@ export interface Property {
   capacity: number;
   occupied: number;
   available: number;
-<<<<<<< HEAD
   availabilityStatus: AvailabilityStatus | string;
   rating: number;
-  verificationStatus: VerificationStatus;
-=======
-  availabilityStatus: "AVAILABLE" | "FILLING_FAST" | "ALMOST_FULL" | "FULL";
-  rating: number;
-  verificationStatus: "DRAFT" | "SUBMITTED_FOR_VERIFICATION" | "UNDER_REVIEW" | "VERIFIED" | "REJECTED";
->>>>>>> origin/main
+  verificationStatus: VerificationStatus | string;
   verificationHash?: string;
   verificationTimestamp?: string;
   blockchainTx?: string;
@@ -120,6 +110,11 @@ export interface MatchResult {
   property: Property;
   score: number;
   explanation: string;
+  budgetScore?: number;
+  distanceScore?: number;
+  trustScore?: number;
+  facilitiesScore?: number;
+  lifestyleScore?: number;
   compareItem?: {
     id: string;
     name: string;
@@ -149,6 +144,6 @@ export interface CompareItem {
   rating: number;
   available: number;
   availabilityStatus: AvailabilityStatus | string;
-  verificationStatus: VerificationStatus;
+  verificationStatus: VerificationStatus | string;
   keyFacilities: string[];
 }

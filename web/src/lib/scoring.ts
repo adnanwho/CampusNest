@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import { Property, StudentProfile } from "./types";
-=======
 import { MatchResult, Property, StudentProfile } from "./types";
 
 export function calculateMatchScore(
@@ -8,11 +5,12 @@ export function calculateMatchScore(
   profile: StudentProfile
 ): MatchResult {
   const effectiveMonthlyCost =
+    property.effectiveMonthlyCost ||
     property.rent +
-    property.foodCost +
-    property.electricityCost +
-    property.wifiCost +
-    property.maintenanceCost;
+      property.foodCost +
+      property.electricityCost +
+      property.wifiCost +
+      property.maintenanceCost;
 
   const budgetMid = (profile.budgetMin + profile.budgetMax) / 2;
   const budgetRange = profile.budgetMax - profile.budgetMin || 1;
@@ -62,7 +60,7 @@ export function calculateMatchScore(
 
   const typeMatch = profile.accommodationType
     ? property.type.toLowerCase() === profile.accommodationType.toLowerCase() ||
-      property.type === "SHARED_ACCOMMODATION" && profile.accommodationType === "FLAT"
+      (property.type === "SHARED_ACCOMMODATION" && profile.accommodationType === "FLAT")
     : true;
   const localityMatch = profile.localityPref
     ? property.locality.toLowerCase().includes(profile.localityPref.toLowerCase()) ||
@@ -82,14 +80,14 @@ export function calculateMatchScore(
     0.10 * lifestyleScore;
 
   const explanations: Record<string, string> = {
-    aarav: `Strong match for ${profile.name} — within budget at ₹${effectiveMonthlyCost.toLocaleString()}, just ${property.distanceKm}km from campus with excellent safety ratings and verified on-chain.`,
-    priya: `Excellent fit for ${profile.name} — premium amenities including ${property.facilities.slice(0, 3).join(", ")} align with your preferences, and the verified status ensures trust.`,
-    rohan: `Budget-friendly option for ${profile.name} at ₹${effectiveMonthlyCost.toLocaleString()}/mo with good connectivity and essential facilities. Verified and ready to book.`,
+    aarav: `Strong match for ${profile.name} — within budget at ₹${effectiveMonthlyCost.toLocaleString("en-IN")}, just ${property.distanceKm}km from campus with verified trust metrics.`,
+    priya: `Excellent fit for ${profile.name} — premium amenities including ${property.facilities.slice(0, 3).join(", ")} align with your preferences.`,
+    rohan: `Budget-friendly option for ${profile.name} at ₹${effectiveMonthlyCost.toLocaleString("en-IN")}/mo with good connectivity and essential facilities.`,
   };
 
   const explanation =
     explanations[profile.goldenProfileKey || ""] ||
-    `${Math.round(totalScore)}% match — ₹${effectiveMonthlyCost.toLocaleString()}/mo effective cost, ${property.distanceKm}km away, ${property.verificationStatus === "VERIFIED" ? "verified on blockchain" : property.verificationStatus.toLowerCase()}.`;
+    `${Math.round(totalScore)}% match — ₹${effectiveMonthlyCost.toLocaleString("en-IN")}/mo effective cost, ${property.distanceKm}km away, ${property.verificationStatus === "VERIFIED" ? "verified by CampusNest" : property.verificationStatus.toLowerCase()}.`;
 
   return {
     property,
@@ -102,10 +100,15 @@ export function calculateMatchScore(
     explanation,
   };
 }
->>>>>>> origin/main
 
 export function getEffectiveMonthlyCost(property: Property): number {
-  return property.effectiveMonthlyCost;
+  return property.effectiveMonthlyCost || (
+    property.rent +
+    (property.foodCost || 0) +
+    (property.electricityCost || 0) +
+    (property.wifiCost || 0) +
+    (property.maintenanceCost || 0)
+  );
 }
 
 export function getAvailabilityBadge(property: Property): {
@@ -113,35 +116,21 @@ export function getAvailabilityBadge(property: Property): {
   color: string;
 } {
   const status = property.availabilityStatus;
-<<<<<<< HEAD
-  if (status) {
-    const map: Record<string, { label: string; color: string }> = {
-      AVAILABLE: { label: "Available", color: "bg-green-100 text-green-700" },
-      FILLING_FAST: { label: "Filling Fast", color: "bg-yellow-100 text-yellow-700" },
-      ALMOST_FULL: { label: "Almost Full", color: "bg-orange-100 text-orange-700" },
-      FULL: { label: "Full", color: "bg-red-100 text-red-700" },
-    };
-    const mapped = map[status.toUpperCase()];
-    if (mapped) return mapped;
-  }
-  const ratio = property.occupied / Math.max(1, property.capacity);
-  if (ratio >= 1) return { label: "Full", color: "bg-red-100 text-red-700" };
-  if (ratio >= 0.8) return { label: "Almost Full", color: "bg-orange-100 text-orange-700" };
-  if (ratio >= 0.5) return { label: "Filling Fast", color: "bg-yellow-100 text-yellow-700" };
-  return { label: "Available", color: "bg-green-100 text-green-700" };
-}
-=======
   const badges: Record<string, { label: string; color: string }> = {
-    AVAILABLE: { label: "Available", color: "bg-green-100 text-green-700" },
-    FILLING_FAST: { label: "Filling Fast", color: "bg-yellow-100 text-yellow-700" },
-    ALMOST_FULL: { label: "Almost Full", color: "bg-orange-100 text-orange-700" },
-    FULL: { label: "Full", color: "bg-red-100 text-red-700" },
+    AVAILABLE: { label: "Available", color: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+    FILLING_FAST: { label: "Filling Fast", color: "bg-amber-50 text-amber-700 border border-amber-200" },
+    ALMOST_FULL: { label: "Almost Full", color: "bg-orange-50 text-orange-700 border border-orange-200" },
+    FULL: { label: "Full", color: "bg-rose-50 text-rose-700 border border-rose-200" },
   };
-  if (status && badges[status]) return badges[status];
-  const ratio = property.occupied / property.capacity;
+
+  if (status && badges[status.toUpperCase()]) {
+    return badges[status.toUpperCase()];
+  }
+
+  const capacity = Math.max(1, property.capacity || 1);
+  const ratio = (property.occupied || 0) / capacity;
   if (ratio >= 1) return badges.FULL;
   if (ratio >= 0.8) return badges.ALMOST_FULL;
   if (ratio >= 0.5) return badges.FILLING_FAST;
   return badges.AVAILABLE;
 }
->>>>>>> origin/main

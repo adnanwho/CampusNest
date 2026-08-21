@@ -42,3 +42,9 @@ backend/startup-error.txt
 backend/test-errors.txt
 # Temporary frontend
 frontend/
+
+# Agent & tool metadata
+.cursor/
+.kilo/
+.opencode/
+graphify-out/

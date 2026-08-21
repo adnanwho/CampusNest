@@ -77,7 +77,7 @@ public class PropertyService {
                 .toList();
         if (eligible.size() < 2) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Comparison requires at least 2 verified, available properties");
+                    "Comparison requires at least 2 verified, available properties; found " + eligible.size());
         }
         return eligible.stream()
                 .map(property -> propertyMapper.toCompareItem(property, recommendationService.score(property, profile)))

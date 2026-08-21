@@ -1,32 +1,25 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
-  subsets: ["latin"],
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "CampusNest — Smart Student Accommodation Marketplace",
-  description: "Find verified student accommodation with smart recommendations, live availability, and blockchain-backed verification.",
+  title: "CampusNest — Verified Student Accommodation Marketplace",
+  description: "Find student stays that fit your budget, commute and lifestyle with verified listings and live availability.",
 };
 
 export default function RootLayout({
   children,
-}: LayoutProps<"/">) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${outfit.variable} h-full antialiased`}
+      className="h-full antialiased font-sans"
       data-scroll-behavior="smooth"
     >
-      <body className="min-h-full flex flex-col bg-slate-50">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#F7F5EF] text-[#17202A] selection:bg-[#39B86B]/20 selection:text-[#17202A]">
+        {children}
+      </body>
     </html>
   );
 }

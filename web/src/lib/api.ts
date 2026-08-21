@@ -180,7 +180,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers.set("Content-Type", "application/json");
     if (token) headers.set("Authorization", `Bearer ${token}`);
 
-    const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers, cache: "no-store" });
+    let response: Response;
+    try {
+        response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers, cache: "no-store" });
+    } catch {
+        throw new Error("Unable to connect to CampusNest server.");
+    }
     if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as ApiError;
         throw new Error(body.error ?? body.message ?? `Request failed with status ${response.status}`);

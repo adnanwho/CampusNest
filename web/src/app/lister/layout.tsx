@@ -11,22 +11,13 @@ export default function ListerLayout({
 }) {
   const user = getStoredUser();
   return (
-<<<<<<< HEAD
-    <RouteGuard allowedRoles={["lister"]}>
-      <div className="min-h-screen bg-slate-50">
-        <PortalNav role="lister" userName={user?.name} />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <RouteGuard allowedRoles={["LISTER"]}>
+      <div className="min-h-screen bg-[#F7F5EF] flex flex-col selection:bg-[#39B86B]/20 selection:text-[#17202A]">
+        <PortalNav role="LISTER" userName={user?.name} />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
           {children}
         </main>
       </div>
     </RouteGuard>
-=======
-    <div className="min-h-screen bg-slate-50">
-      <PortalNav role="LISTER" userName="Demo Lister" />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
-    </div>
->>>>>>> origin/main
   );
 }

@@ -1,36 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import StudentLayout from "@/app/student/layout";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { Search, Filter, RotateCcw, MapPin } from "lucide-react";
 import { getProperties } from "@/lib/api";
-import type { Property } from "@/lib/types";
+import type { Property, MatchResult } from "@/lib/types";
 import PropertyCard from "@/components/shared/PropertyCard";
-import type { MatchResult } from "@/lib/types";
 
-export default function SearchPage() {
+function SearchContent() {
+  const searchParams = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
   const [filters, setFilters] = useState({
-    locality: "",
-    budgetMin: "",
-    budgetMax: "",
-    type: "",
+    locality: searchParams.get("locality") || "",
+    budgetMin: searchParams.get("budgetMin") || "",
+    budgetMax: searchParams.get("budgetMax") || "",
+    type: searchParams.get("type") || "",
   });
 
   useEffect(() => {
-    loadProperties();
-  }, []);
+    let isMounted = true;
+    const params: { locality?: string; budgetMin?: number; budgetMax?: number; type?: string } = {};
+    if (filters.locality) params.locality = filters.locality;
+    if (filters.budgetMin) params.budgetMin = Number(filters.budgetMin);
+    if (filters.budgetMax) params.budgetMax = Number(filters.budgetMax);
+    if (filters.type) params.type = filters.type;
 
-  async function loadProperties() {
+    getProperties(params)
+      .then((data) => {
+        if (isMounted) {
+          setProperties(data);
+          setError(null);
+        }
+      })
+      .catch((requestError) => {
+        if (isMounted) {
+          setError(requestError instanceof Error ? requestError.message : "Unable to load properties");
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [filters]);
+
+  async function executeSearch(currentFilters = filters) {
     setLoading(true);
     setError(null);
     try {
       const params: { locality?: string; budgetMin?: number; budgetMax?: number; type?: string } = {};
-      if (filters.locality) params.locality = filters.locality;
-      if (filters.budgetMin) params.budgetMin = Number(filters.budgetMin);
-      if (filters.budgetMax) params.budgetMax = Number(filters.budgetMax);
-      if (filters.type) params.type = filters.type;
+      if (currentFilters.locality) params.locality = currentFilters.locality;
+      if (currentFilters.budgetMin) params.budgetMin = Number(currentFilters.budgetMin);
+      if (currentFilters.budgetMax) params.budgetMax = Number(currentFilters.budgetMax);
+      if (currentFilters.type) params.type = currentFilters.type;
       const data = await getProperties(params);
       setProperties(data);
     } catch (requestError) {
@@ -44,79 +71,151 @@ export default function SearchPage() {
     setFilters((current) => ({ ...current, [field]: value }));
   }
 
+  function resetFilters() {
+    const emptyFilters = { locality: "", budgetMin: "", budgetMax: "", type: "" };
+    setFilters(emptyFilters);
+    executeSearch(emptyFilters);
+  }
+
   const results: MatchResult[] = properties.map((property) => ({
     property,
     score: property.matchScore ?? 0,
-    explanation: property.aiExplanation ?? "Search result from your filters.",
+    explanation: property.aiExplanation ?? "Verified property matching your search filters.",
   }));
 
   return (
-    <StudentLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Search Properties</h1>
-          <p className="text-slate-600">Filter verified accommodations by location, budget, and type</p>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <div>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF8F0] border border-[#39B86B]/30 text-[#2A8C50] text-xs font-bold uppercase tracking-wider mb-2">
+          <Filter className="w-3.5 h-3.5" />
+          Filter & Explore
         </div>
+        <h1 className="text-3xl font-extrabold text-[#17202A] tracking-tight">
+          Search Student Stays
+        </h1>
+        <p className="text-sm text-[#596573] mt-1">
+          Filter verified student accommodations across Greater Noida & NCR campuses
+        </p>
+      </div>
 
-        <div className="glass-card rounded-2xl p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Locality</label>
+      {/* Filter Box */}
+      <div className="campus-card p-6 bg-white border border-[#E5E0D8] shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
+              Locality / Area
+            </label>
+            <div className="relative">
+              <MapPin className="w-4 h-4 text-[#8A96A3] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={filters.locality}
                 onChange={(event) => updateFilter("locality", event.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none no-spinner"
-                placeholder="e.g., Knowledge Park"
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] placeholder:text-[#8A96A3] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none transition-all"
+                placeholder="Knowledge Park, Pari Chowk..."
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Min Budget (₹)</label>
-              <input
-                type="number"
-                value={filters.budgetMin}
-                onChange={(event) => updateFilter("budgetMin", event.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none no-spinner"
-                placeholder="5000"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Max Budget (₹)</label>
-              <input
-                type="number"
-                value={filters.budgetMax}
-                onChange={(event) => updateFilter("budgetMax", event.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none no-spinner"
-                placeholder="15000"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
-              <select
-                value={filters.type}
-                onChange={(event) => updateFilter("type", event.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none no-spinner"
-              >
-                <option value="">All Types</option>
-                <option value="PG">PG</option>
-                <option value="HOSTEL">Hostel</option>
-                <option value="FLAT">Flat</option>
-                <option value="SHARED_ACCOMMODATION">Shared Flat</option>
-              </select>
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
-            <button onClick={loadProperties} className="btn-primary">
-              Apply Filters
-            </button>
+
+          <div>
+            <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
+              Min Budget (₹/mo)
+            </label>
+            <input
+              type="number"
+              value={filters.budgetMin}
+              onChange={(event) => updateFilter("budgetMin", event.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] placeholder:text-[#8A96A3] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none transition-all no-spinner"
+              placeholder="e.g. 5000"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
+              Max Budget (₹/mo)
+            </label>
+            <input
+              type="number"
+              value={filters.budgetMax}
+              onChange={(event) => updateFilter("budgetMax", event.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] placeholder:text-[#8A96A3] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none transition-all no-spinner"
+              placeholder="e.g. 15000"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
+              Property Type
+            </label>
+            <select
+              value={filters.type}
+              onChange={(event) => updateFilter("type", event.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none transition-all"
+            >
+              <option value="">All Accommodation Types</option>
+              <option value="PG">PG (Paying Guest)</option>
+              <option value="HOSTEL">Student Hostel</option>
+              <option value="FLAT">Independent Flat</option>
+            </select>
           </div>
         </div>
 
-        {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-        {loading && <p className="text-slate-500">Loading properties...</p>}
-        {!loading && results.length === 0 && !error && (
-          <p className="text-slate-500 text-center py-12">No properties match your filters.</p>
-        )}
+        <div className="mt-5 pt-4 border-t border-[#E5E0D8] flex items-center justify-between">
+          <button
+            onClick={resetFilters}
+            type="button"
+            className="text-xs font-bold text-[#596573] hover:text-[#17202A] flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset Filters
+          </button>
+          <button
+            onClick={() => executeSearch()}
+            className="btn-primary text-xs py-2 px-5 font-bold flex items-center gap-1.5 cursor-pointer"
+          >
+            <Search className="w-3.5 h-3.5" />
+            Apply Search
+          </button>
+        </div>
+      </div>
+
+      {/* Results Header */}
+      <div className="flex items-center justify-between text-xs font-bold text-[#596573] px-1">
+        <span>
+          Showing {results.length} verified {results.length === 1 ? "stay" : "stays"}
+        </span>
+      </div>
+
+      {error && (
+        <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="campus-card h-80 animate-pulse bg-white/60 border border-[#E5E0D8]" />
+          ))}
+        </div>
+      )}
+
+      {!loading && results.length === 0 && !error && (
+        <div className="campus-card p-12 text-center max-w-md mx-auto bg-white border border-[#E5E0D8]">
+          <div className="w-12 h-12 rounded-2xl bg-[#F7F5EF] flex items-center justify-center text-[#596573] mx-auto mb-4">
+            <Search className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-bold text-[#17202A] mb-1">No matching properties</h3>
+          <p className="text-xs text-[#596573] mb-6">
+            We couldn&apos;t find verified stays matching those exact criteria. Try broadening your budget or location.
+          </p>
+          <button onClick={resetFilters} className="btn-secondary text-xs py-2 px-4 font-bold cursor-pointer">
+            Clear all filters
+          </button>
+        </div>
+      )}
+
+      {!loading && results.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {results.map((result, idx) => (
             <PropertyCard
@@ -126,7 +225,15 @@ export default function SearchPage() {
             />
           ))}
         </div>
-      </div>
-    </StudentLayout>
+      )}
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<p className="text-xs text-[#8A96A3]">Loading search portal...</p>}>
+      <SearchContent />
+    </Suspense>
   );
 }
