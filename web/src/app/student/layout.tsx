@@ -11,6 +11,7 @@ export default function StudentLayout({
 }) {
   const user = getStoredUser();
   return (
+<<<<<<< HEAD
     <RouteGuard allowedRoles={["student"]}>
       <div className="min-h-screen bg-slate-50">
         <PortalNav role="student" userName={user?.name} />
@@ -19,5 +20,13 @@ export default function StudentLayout({
         </main>
       </div>
     </RouteGuard>
+=======
+    <div className="min-h-screen bg-slate-50">
+      <PortalNav role="STUDENT" userName={profile.name} />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </main>
+    </div>
+>>>>>>> origin/main
   );
 }

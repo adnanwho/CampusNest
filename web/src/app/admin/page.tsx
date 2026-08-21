@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import { Check, X, Shield } from "lucide-react";
 import { approveVerification, getPendingVerifications, rejectVerification } from "@/lib/api";
@@ -8,6 +9,16 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminPage() {
   const [properties, setProperties] = useState<Property[]>([]);
+=======
+import { useState } from "react";
+import { Check, X, Shield } from "lucide-react";
+import { demoProperties } from "@/lib/data";
+import { generateMockTxHash } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function AdminPage() {
+  const [properties, setProperties] = useState(demoProperties);
+>>>>>>> origin/main
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -25,9 +36,20 @@ export default function AdminPage() {
     setTimeout(() => setShowSuccess(false), 3000);
   };
 
+<<<<<<< HEAD
   const handleReject = async (propertyId: string) => {
     await rejectVerification(propertyId, "Does not meet verification criteria.");
     setProperties((prev) => prev.filter((p) => p.id !== propertyId));
+=======
+  const handleReject = (propertyId: string) => {
+    setProperties((prev) =>
+      prev.map((p) =>
+        p.id === propertyId
+          ? { ...p, verificationStatus: "REJECTED" as const, rejectionReason: "Does not meet verification criteria." }
+          : p
+      )
+    );
+>>>>>>> origin/main
   };
 
   return (

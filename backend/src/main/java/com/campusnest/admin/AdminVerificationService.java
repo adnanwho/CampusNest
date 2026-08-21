@@ -48,9 +48,13 @@ public class AdminVerificationService {
     public PropertySummaryDto approve(UserPrincipal admin, Long id) {
         Property property = getPendingProperty(id);
         Instant now = Instant.now();
+<<<<<<< HEAD
         String hash = blockchainService.computeRecordHash(
                 property.getId(), property.getListerId(), now.toString(), VerificationStatus.VERIFIED.name(),
                 property.getAddress(), property.getCapacity(), admin.getId());
+=======
+        String hash = blockchainService.computeCanonicalHash(property, String.valueOf(admin.getId()), VerificationStatus.VERIFIED, now);
+>>>>>>> origin/main
         BlockchainService.BlockchainResult chain = blockchainService.registerVerification(property.getId(), hash);
 
         property.setVerificationStatus(VerificationStatus.VERIFIED);
@@ -77,9 +81,13 @@ public class AdminVerificationService {
     public PropertySummaryDto reject(UserPrincipal admin, Long id, RejectRequest request) {
         Property property = getPendingProperty(id);
         Instant now = Instant.now();
+<<<<<<< HEAD
         String hash = blockchainService.computeRecordHash(
                 property.getId(), property.getListerId(), now.toString(), VerificationStatus.REJECTED.name(),
                 property.getAddress(), property.getCapacity(), admin.getId());
+=======
+        String hash = blockchainService.computeCanonicalHash(property, String.valueOf(admin.getId()), VerificationStatus.REJECTED, now);
+>>>>>>> origin/main
         property.setVerificationStatus(VerificationStatus.REJECTED);
         property.setRejectionReason(request.getReason());
         property = propertyRepository.save(property);

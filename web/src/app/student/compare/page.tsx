@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 "use client";
+=======
+import StudentLayout from "@/app/student/layout";
+import { demoProperties, goldenProfiles } from "@/lib/data";
+import { calculateMatchScore, getEffectiveMonthlyCost } from "@/lib/scoring";
+import ProfileSelector from "@/components/student/ProfileSelector";
+>>>>>>> origin/main
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";

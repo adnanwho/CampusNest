@@ -1,9 +1,14 @@
 "use client";
 
 import StudentLayout from "@/app/student/layout";
+<<<<<<< HEAD
 import { getRecommendations, getStudentProfile } from "@/lib/api";
 import type { MatchResult, StudentProfile } from "@/lib/types";
 import { useEffect, useState } from "react";
+=======
+import { goldenProfiles, demoProperties } from "@/lib/data";
+import { calculateMatchScore } from "@/lib/scoring";
+>>>>>>> origin/main
 import PropertyCard from "@/components/shared/PropertyCard";
 import ProfileSelector from "@/components/student/ProfileSelector";
 

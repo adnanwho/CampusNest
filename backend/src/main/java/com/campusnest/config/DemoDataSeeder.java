@@ -45,6 +45,7 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final AvailabilityService availabilityService;
     private final BlockchainService blockchainService;
+    private Long adminUserId;
 
     @Value("${campusnest.admin.email}")
     private String adminEmail;
@@ -65,12 +66,13 @@ public class DemoDataSeeder implements ApplicationRunner {
     }
 
     private void seedUsers() {
-        userRepository.findByEmail(adminEmail).orElseGet(() -> userRepository.save(User.builder()
+        User admin = userRepository.findByEmail(adminEmail).orElseGet(() -> userRepository.save(User.builder()
                 .name(adminName)
                 .email(adminEmail)
                 .passwordHash(passwordEncoder.encode(adminPassword))
                 .role(UserRole.ADMIN)
                 .build()));
+        this.adminUserId = admin.getId();
 
         User lister = userRepository.findByEmail("lister@campusnest.demo").orElseGet(() -> userRepository.save(User.builder()
                 .name("CampusNest Demo Lister")
@@ -193,9 +195,13 @@ public class DemoDataSeeder implements ApplicationRunner {
 
         if (property.getVerificationStatus() == VerificationStatus.VERIFIED) {
             Instant timestamp = Instant.now();
+<<<<<<< HEAD
             String hash = blockchainService.computeRecordHash(
                     property.getId(), property.getListerId(), timestamp.toString(), VerificationStatus.VERIFIED.name(),
                     property.getAddress(), property.getCapacity(), null);
+=======
+            String hash = blockchainService.computeCanonicalHash(property, String.valueOf(adminUserId), VerificationStatus.VERIFIED, timestamp);
+>>>>>>> origin/main
             property.setVerificationHash(hash);
             property.setVerificationTimestamp(timestamp);
             property.setBlockchainTx("mock-seed-" + Math.abs(property.getName().hashCode()));

@@ -98,9 +98,15 @@ export default function ListerPage() {
                     : property.verificationStatus === "UNDER_REVIEW"
                       ? "bg-yellow-50 text-yellow-700"
                       : property.verificationStatus === "SUBMITTED_FOR_VERIFICATION"
+<<<<<<< HEAD
                         ? "bg-blue-50 text-blue-700"
                         : "bg-slate-100 text-slate-600"
                     }`}>
+=======
+                      ? "bg-blue-50 text-blue-700"
+                      : "bg-slate-100 text-slate-600"
+                  }`}>
+>>>>>>> origin/main
                     {property.verificationStatus.replace("_", " ")}
                   </span>
                   <div className="flex items-center gap-3">

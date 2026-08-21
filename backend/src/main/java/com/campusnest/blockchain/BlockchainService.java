@@ -10,7 +10,10 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
 
+import com.campusnest.model.Property;
+import com.campusnest.model.VerificationStatus;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
@@ -43,6 +46,7 @@ public class BlockchainService {
     }
 
     public String computeRecordHash(Long propertyId, Long listerId, String timestamp, String status) {
+<<<<<<< HEAD
         return computeRecordHash(propertyId, listerId, timestamp, status, null, null, null);
     }
 
@@ -62,6 +66,28 @@ public class BlockchainService {
         if (adminId != null) {
             payload.append("|").append(adminId);
         }
+=======
+        String payload = propertyId + "|" + listerId + "|" + timestamp + "|" + status;
+        return sha256(payload);
+    }
+
+    public String computeCanonicalHash(Property property, String adminSignoff, VerificationStatus status, Instant timestamp) {
+        String payload = property.getId() + "|" +
+                safe(property.getAddress()) + "|" +
+                property.getCapacity() + "|" +
+                property.getRent() + "|" +
+                status.name() + "|" +
+                timestamp.toString() + "|" +
+                safe(adminSignoff);
+        return sha256(payload);
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    private String sha256(String payload) {
+>>>>>>> origin/main
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(payload.toString().getBytes(StandardCharsets.UTF_8));

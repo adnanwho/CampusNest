@@ -1,4 +1,4 @@
-export type UserRole = "student" | "lister" | "admin";
+export type UserRole = "STUDENT" | "LISTER" | "ADMIN";
 
 export interface User {
   id: string;
@@ -45,7 +45,11 @@ export interface Property {
   id: string;
   listerId: string;
   name: string;
+<<<<<<< HEAD
   type: PropertyType | string;
+=======
+  type: "PG" | "HOSTEL" | "FLAT" | "SHARED_ACCOMMODATION";
+>>>>>>> origin/main
   address: string;
   locality: string;
   description: string;
@@ -65,9 +69,15 @@ export interface Property {
   capacity: number;
   occupied: number;
   available: number;
+<<<<<<< HEAD
   availabilityStatus: AvailabilityStatus | string;
   rating: number;
   verificationStatus: VerificationStatus;
+=======
+  availabilityStatus: "AVAILABLE" | "FILLING_FAST" | "ALMOST_FULL" | "FULL";
+  rating: number;
+  verificationStatus: "DRAFT" | "SUBMITTED_FOR_VERIFICATION" | "UNDER_REVIEW" | "VERIFIED" | "REJECTED";
+>>>>>>> origin/main
   verificationHash?: string;
   verificationTimestamp?: string;
   blockchainTx?: string;
@@ -110,6 +120,21 @@ export interface MatchResult {
   property: Property;
   score: number;
   explanation: string;
+  compareItem?: {
+    id: string;
+    name: string;
+    matchScore: number;
+    rent: number;
+    effectiveMonthlyCost: number;
+    deposit: number;
+    distanceKm: number;
+    commuteTimeMin: number;
+    rating: number;
+    available: number;
+    availabilityStatus: string;
+    verificationStatus: string;
+    keyFacilities: string[];
+  };
 }
 
 export interface CompareItem {

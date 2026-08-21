@@ -25,7 +25,11 @@ const facilityIcons: Record<string, React.ReactNode> = {
 export default function PropertyCard({ result, rank }: PropertyCardProps) {
   const { property, score, explanation } = result;
   const badge = getAvailabilityBadge(property);
+<<<<<<< HEAD
   const effectiveCost = property.effectiveMonthlyCost;
+=======
+  const effectiveCost = property.rent + property.foodCost + property.electricityCost + property.wifiCost + property.maintenanceCost;
+>>>>>>> origin/main
 
   const circumference = 2 * Math.PI * 34;
   const dashOffset = circumference - (score / 100) * circumference;
@@ -33,7 +37,13 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
   const scoreColor = score >= 80 ? "#10b981" : score >= 60 ? "#f59e0b" : "#ef4444";
 
   return (
+<<<<<<< HEAD
     <div className="glass-card rounded-2xl overflow-hidden group">
+=======
+    <div
+      className="glass-card rounded-2xl overflow-hidden group"
+    >
+>>>>>>> origin/main
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
