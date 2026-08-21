@@ -3,15 +3,22 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Columns, 
   ArrowLeft, 
   ShieldCheck, 
-  Star
+  Star, 
+  MapPin, 
+  Sparkles,
+  ChevronRight,
+  TrendingDown,
+  Navigation
 } from "lucide-react";
 import { compareProperties, getRecommendations } from "@/lib/api";
 import type { CompareItem } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
+import { getPropertyCoverImage } from "@/lib/images";
 
 function CompareContent() {
   const searchParams = useSearchParams();
@@ -63,181 +70,188 @@ function CompareContent() {
     };
   }, [searchParams]);
 
-  return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-b border-[#E5E0D8] pb-6">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF8F0] border border-[#39B86B]/30 text-[#2A8C50] text-xs font-bold uppercase tracking-wider mb-2">
-            <Columns className="w-3.5 h-3.5" />
-            Side-by-Side Evaluation
-          </div>
-          <h1 className="text-3xl font-extrabold text-[#17202A] tracking-tight">
-            Compare Student Stays
-          </h1>
-          <p className="text-sm text-[#596573] mt-1">
-            Compare true monthly cost, commute, and facilities side-by-side
-          </p>
-        </div>
-        <Link href="/student" className="btn-secondary text-xs py-2 px-3.5 font-bold flex items-center gap-1.5">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Discover
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto text-center py-24">
+        <div className="w-12 h-12 border-3 border-[#39B86B] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-xs font-bold text-[#596573]">Generating side-by-side financial and facility comparison matrix...</p>
+      </div>
+    );
+  }
+
+  if (error || items.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto text-center py-20 bg-white rounded-3xl border border-[#E5E0D8] p-8 shadow-sm">
+        <p className="text-sm font-bold text-red-600 mb-4">{error || "No properties available to compare."}</p>
+        <Link href="/student" className="btn-primary text-xs py-2.5 px-5 font-bold inline-block">
+          Back to Discover Stays
         </Link>
       </div>
+    );
+  }
 
-      {error && (
-        <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-          {error}
+  // Find Best Values for Highlights
+  const lowestCost = Math.min(...items.map((it) => it.effectiveMonthlyCost));
+  const nearestDistance = Math.min(...items.map((it) => it.distanceKm || 999));
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-8 pb-20">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <Link
+            href="/student"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#596573] hover:text-[#17202A] transition-colors mb-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Discover Stays</span>
+          </Link>
+          <h1 className="text-3xl font-extrabold text-[#17202A] tracking-tight">
+            Side-by-Side Accommodation Comparison
+          </h1>
+          <p className="text-xs text-[#596573] mt-0.5">
+            Transparent matrix of effective monthly costs, deposits, campus commute times, and verified facilities.
+          </p>
         </div>
-      )}
+      </div>
 
-      {loading && (
-        <div className="campus-card p-12 text-center bg-white border border-[#E5E0D8]">
-          <div className="w-10 h-10 border-3 border-[#39B86B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-bold text-[#596573]">Generating comparison matrix...</p>
-        </div>
-      )}
+      {/* Comparison Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {items.map((item) => {
+          const isBestPrice = item.effectiveMonthlyCost === lowestCost;
+          const isNearest = item.distanceKm === nearestDistance;
+          const coverImg = getPropertyCoverImage(item.id, "PG");
 
-      {!loading && !error && items.length > 0 && (
-        <div className="overflow-x-auto rounded-3xl border border-[#E5E0D8] bg-white shadow-sm">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#FAF8F5] border-b border-[#E5E0D8]">
-                <th className="p-5 text-xs font-bold text-[#8A96A3] uppercase tracking-wider w-48">
-                  Feature / Stay
-                </th>
-                {items.map((item, idx) => (
-                  <th key={item.id} className="p-5 min-w-[240px] border-l border-[#E5E0D8]">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#17202A] text-white">
-                        Stay #{idx + 1}
-                      </span>
-                      <span className="text-xs font-black text-[#2A8C50] bg-[#EBF8F0] px-2.5 py-0.5 rounded-full border border-[#39B86B]/20">
-                        {item.matchScore}% Match
-                      </span>
-                    </div>
-                    <div className="font-extrabold text-base text-[#17202A] line-clamp-1">{item.name}</div>
-                    <Link
-                      href={`/student/property/${item.id}`}
-                      className="text-xs font-bold text-[#39B86B] hover:text-[#2A8C50] hover:underline inline-block mt-1"
-                    >
-                      View Details →
-                    </Link>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5E0D8] text-sm">
-              {/* Effective Monthly Cost */}
-              <tr className="bg-[#EBF8F0]/30">
-                <td className="p-5 font-bold text-[#17202A]">Effective Total Outlay</td>
-                {items.map((item) => (
-                  <td key={item.id} className="p-5 border-l border-[#E5E0D8]">
-                    <div className="text-lg font-black text-[#2A8C50]">
-                      {formatCurrency(item.effectiveMonthlyCost)}
-                      <span className="text-xs font-normal text-[#596573]"> /mo</span>
-                    </div>
-                  </td>
-                ))}
-              </tr>
+          return (
+            <div
+              key={item.id}
+              className="campus-card bg-white border border-[#E5E0D8] rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between"
+            >
+              {/* Photo Header */}
+              <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
+                <Image
+                  src={coverImg}
+                  alt={item.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-              {/* Base Rent */}
-              <tr>
-                <td className="p-5 font-semibold text-[#596573]">Base Monthly Rent</td>
-                {items.map((item) => (
-                  <td key={item.id} className="p-5 border-l border-[#E5E0D8] font-bold text-[#17202A]">
-                    {formatCurrency(item.rent)}
-                  </td>
-                ))}
-              </tr>
-
-              {/* Deposit */}
-              <tr>
-                <td className="p-5 font-semibold text-[#596573]">Security Deposit</td>
-                {items.map((item) => (
-                  <td key={item.id} className="p-5 border-l border-[#E5E0D8] text-[#596573]">
-                    {formatCurrency(item.deposit)}
-                  </td>
-                ))}
-              </tr>
-
-              {/* Commute */}
-              <tr>
-                <td className="p-5 font-semibold text-[#596573]">Commute & Distance</td>
-                {items.map((item) => (
-                  <td key={item.id} className="p-5 border-l border-[#E5E0D8] text-[#17202A]">
-                    <span className="font-bold">{item.commuteTimeMin} min</span>
-                    <span className="text-[#596573] text-xs"> ({item.distanceKm} km)</span>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Live Availability */}
-              <tr>
-                <td className="p-5 font-semibold text-[#596573]">Live Bed Vacancy</td>
-                {items.map((item) => (
-                  <td key={item.id} className="p-5 border-l border-[#E5E0D8]">
-                    <span className="font-bold text-[#17202A]">{item.available}</span>
-                    <span className="text-xs text-[#596573]"> beds available</span>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Rating */}
-              <tr>
-                <td className="p-5 font-semibold text-[#596573]">Student Rating</td>
-                {items.map((item) => (
-                  <td key={item.id} className="p-5 border-l border-[#E5E0D8]">
-                    <div className="flex items-center gap-1 font-bold text-[#17202A]">
-                      <Star className="w-4 h-4 text-[#FFC857] fill-[#FFC857]" />
-                      <span>{item.rating}</span>
-                      <span className="text-xs text-[#8A96A3] font-normal">/ 5.0</span>
-                    </div>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Verification Status */}
-              <tr>
-                <td className="p-5 font-semibold text-[#596573]">Verification Status</td>
-                {items.map((item) => (
-                  <td key={item.id} className="p-5 border-l border-[#E5E0D8]">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#EBF8F0] text-[#2A8C50] border border-[#39B86B]/30">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#39B86B]" />
-                      CampusNest Verified
+                {/* Top Highlights */}
+                <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                  {isBestPrice && (
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#39B86B] text-white shadow-sm flex items-center gap-1">
+                      <TrendingDown className="w-3 h-3" />
+                      Lowest Monthly Cost
                     </span>
-                  </td>
-                ))}
-              </tr>
+                  )}
+                  {isNearest && !isBestPrice && (
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-600 text-white shadow-sm flex items-center gap-1">
+                      <Navigation className="w-3 h-3" />
+                      Nearest to Campus
+                    </span>
+                  )}
+                </div>
 
-              {/* Key Facilities */}
-              <tr>
-                <td className="p-5 font-semibold text-[#596573]">Included Facilities</td>
-                {items.map((item) => (
-                  <td key={item.id} className="p-5 border-l border-[#E5E0D8]">
-                    <div className="flex flex-wrap gap-1.5">
-                      {item.keyFacilities.map((facility) => (
-                        <span
-                          key={facility}
-                          className="px-2.5 py-1 rounded-lg bg-[#F7F5EF] text-[#17202A] text-xs font-medium border border-[#E5E0D8]"
-                        >
-                          {facility}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
+                <div className="absolute bottom-3 left-3 right-3 text-white">
+                  <h3 className="font-extrabold text-lg leading-tight truncate">
+                    {item.name}
+                  </h3>
+                  <div className="flex items-center gap-1 text-xs text-white/90">
+                    <Star className="w-3.5 h-3.5 text-[#FFC857] fill-[#FFC857]" />
+                    <span>{item.rating || 4.5}</span>
+                    <span>•</span>
+                    <span>{item.distanceKm} km to campus</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comparison Metric Rows */}
+              <div className="p-5 flex-1 space-y-4 text-xs divide-y divide-[#E5E0D8]">
+                {/* Financial Summary */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="text-[10px] font-bold text-[#8A96A3] uppercase">Effective Total</div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-[#17202A]">
+                      {formatCurrency(item.effectiveMonthlyCost)}
+                    </span>
+                    <span className="text-xs text-[#8A96A3]">/mo</span>
+                  </div>
+                  <div className="text-[11px] text-[#596573]">
+                    Base Rent: {formatCurrency(item.rent)} • Deposit: {formatCurrency(item.deposit)}
+                  </div>
+                </div>
+
+                {/* Commute & Distance */}
+                <div className="pt-3 space-y-1">
+                  <div className="text-[10px] font-bold text-[#8A96A3] uppercase">Campus Proximity</div>
+                  <div className="font-bold text-[#17202A]">
+                    {item.distanceKm} km ({item.commuteTimeMin} min commute)
+                  </div>
+                </div>
+
+                {/* Capacity & Vacancy */}
+                <div className="pt-3 space-y-1">
+                  <div className="text-[10px] font-bold text-[#8A96A3] uppercase">Live Vacancy</div>
+                  <div className="font-bold text-[#2A8C50]">
+                    {item.available} beds available
+                  </div>
+                </div>
+
+                {/* Verification Status */}
+                <div className="pt-3 space-y-1">
+                  <div className="text-[10px] font-bold text-[#8A96A3] uppercase">Verification</div>
+                  <div className="flex items-center gap-1 font-bold text-[#2A8C50]">
+                    <ShieldCheck className="w-4 h-4 text-[#39B86B]" />
+                    <span>CampusNest Verified Listing</span>
+                  </div>
+                </div>
+
+                {/* Facilities List */}
+                <div className="pt-3 space-y-2">
+                  <div className="text-[10px] font-bold text-[#8A96A3] uppercase">Included Facilities</div>
+                  <div className="flex flex-wrap gap-1">
+                    {(item.keyFacilities || []).map((fac: string) => (
+                      <span
+                        key={fac}
+                        className="px-2 py-0.5 rounded-md bg-[#F7F5EF] text-[#17202A] text-[10px] font-semibold border border-[#E5E0D8]"
+                      >
+                        {fac}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="p-5 pt-0">
+                <Link
+                  href={`/student/property/${item.id}`}
+                  className="btn-primary w-full py-2.5 text-xs font-bold text-center flex items-center justify-center gap-1"
+                >
+                  <span>View Full Details</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-export default function ComparePage() {
+export default function StudentComparePage() {
   return (
-    <Suspense fallback={<p className="text-xs text-[#8A96A3]">Loading comparison...</p>}>
+    <Suspense
+      fallback={
+        <div className="p-16 text-center">
+          <div className="w-10 h-10 border-3 border-[#39B86B] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-xs font-bold text-[#596573]">Loading comparison matrix...</p>
+        </div>
+      }
+    >
       <CompareContent />
     </Suspense>
   );

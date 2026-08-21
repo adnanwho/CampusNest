@@ -1,11 +1,22 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Filter, RotateCcw, MapPin } from "lucide-react";
+import { 
+  Search, 
+  Filter, 
+  RotateCcw, 
+  MapPin, 
+  SlidersHorizontal,
+  Home,
+  Building,
+  CheckCircle2,
+  X
+} from "lucide-react";
 import { getProperties } from "@/lib/api";
 import type { Property, MatchResult } from "@/lib/types";
 import PropertyCard from "@/components/shared/PropertyCard";
+import { cn } from "@/lib/utils";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -19,6 +30,8 @@ function SearchContent() {
     budgetMax: searchParams.get("budgetMax") || "",
     type: searchParams.get("type") || "",
   });
+
+  const [selectedAmenity, setSelectedAmenity] = useState<string>("ALL");
 
   useEffect(() => {
     let isMounted = true;
@@ -49,190 +62,267 @@ function SearchContent() {
     };
   }, [filters]);
 
-  async function executeSearch(currentFilters = filters) {
-    setLoading(true);
-    setError(null);
-    try {
-      const params: { locality?: string; budgetMin?: number; budgetMax?: number; type?: string } = {};
-      if (currentFilters.locality) params.locality = currentFilters.locality;
-      if (currentFilters.budgetMin) params.budgetMin = Number(currentFilters.budgetMin);
-      if (currentFilters.budgetMax) params.budgetMax = Number(currentFilters.budgetMax);
-      if (currentFilters.type) params.type = currentFilters.type;
-      const data = await getProperties(params);
-      setProperties(data);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Unable to load properties");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const updateFilter = (field: keyof typeof filters, value: string) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  };
 
-  function updateFilter(field: keyof typeof filters, value: string) {
-    setFilters((current) => ({ ...current, [field]: value }));
-  }
+  const resetFilters = () => {
+    setFilters({
+      locality: "",
+      budgetMin: "",
+      budgetMax: "",
+      type: "",
+    });
+    setSelectedAmenity("ALL");
+  };
 
-  function resetFilters() {
-    const emptyFilters = { locality: "", budgetMin: "", budgetMax: "", type: "" };
-    setFilters(emptyFilters);
-    executeSearch(emptyFilters);
-  }
+  const localities = [
+    "All Localities",
+    "Knowledge Park III",
+    "Knowledge Park II",
+    "Pari Chowk",
+    "Alpha 1",
+    "Alpha 2",
+    "Beta 1",
+    "Gamma 1",
+    "Sector 62",
+  ];
 
-  const results: MatchResult[] = properties.map((property) => ({
-    property,
-    score: property.matchScore ?? 0,
-    explanation: property.aiExplanation ?? "Verified property matching your search filters.",
-  }));
+  const accommodationTypes = [
+    { value: "", label: "All Types" },
+    { value: "PG", label: "Student PG" },
+    { value: "HOSTEL", label: "Hostel" },
+    { value: "FLAT", label: "Flat / Apartment" },
+    { value: "SHARED_ACCOMMODATION", label: "Shared Stay" },
+  ];
+
+  const amenities = [
+    { id: "ALL", label: "All Amenities" },
+    { id: "WiFi", label: "High Speed Wi-Fi" },
+    { id: "Food", label: "Meals Included" },
+    { id: "AC", label: "Air Conditioned" },
+    { id: "Security", label: "24/7 Security" },
+    { id: "Gym", label: "Fitness Gym" },
+  ];
+
+  const filteredProperties = useMemo(() => {
+    if (selectedAmenity === "ALL") return properties;
+    return properties.filter((p) =>
+      (p.facilities || []).some((f) =>
+        f.toLowerCase().includes(selectedAmenity.toLowerCase())
+      )
+    );
+  }, [properties, selectedAmenity]);
+
+  const hasActiveFilters =
+    Boolean(filters.locality) ||
+    Boolean(filters.type) ||
+    Boolean(filters.budgetMin) ||
+    Boolean(filters.budgetMax) ||
+    selectedAmenity !== "ALL";
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF8F0] border border-[#39B86B]/30 text-[#2A8C50] text-xs font-bold uppercase tracking-wider mb-2">
-          <Filter className="w-3.5 h-3.5" />
-          Filter & Explore
-        </div>
-        <h1 className="text-3xl font-extrabold text-[#17202A] tracking-tight">
-          Search Student Stays
-        </h1>
-        <p className="text-sm text-[#596573] mt-1">
-          Filter verified student accommodations across Greater Noida & NCR campuses
-        </p>
-      </div>
-
-      {/* Filter Box */}
-      <div className="campus-card p-6 bg-white border border-[#E5E0D8] shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-8 max-w-7xl mx-auto pb-16">
+      {/* Top Search Controls Bar */}
+      <div className="bg-white rounded-3xl p-6 border border-[#E5E0D8] shadow-sm space-y-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#E5E0D8] pb-4">
           <div>
-            <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
-              Locality / Area
-            </label>
-            <div className="relative">
-              <MapPin className="w-4 h-4 text-[#8A96A3] absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={filters.locality}
-                onChange={(event) => updateFilter("locality", event.target.value)}
-                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] placeholder:text-[#8A96A3] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none transition-all"
-                placeholder="Knowledge Park, Pari Chowk..."
-              />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF8F0] border border-[#39B86B]/30 text-[#2A8C50] text-xs font-extrabold uppercase tracking-wider mb-1">
+              <Search className="w-3.5 h-3.5" />
+              Comprehensive Search & Discovery
             </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#17202A] tracking-tight">
+              Explore Verified Accommodations
+            </h1>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
-              Min Budget (₹/mo)
+          {hasActiveFilters && (
+            <button
+              onClick={resetFilters}
+              className="text-xs font-bold text-[#E63946] hover:bg-red-50 px-3 py-1.5 rounded-xl border border-red-200 flex items-center gap-1 transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset All Filters</span>
+            </button>
+          )}
+        </div>
+
+        {/* Filters Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Locality Dropdown */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[#8A96A3] uppercase tracking-wider flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-[#39B86B]" />
+              Locality / Area
+            </label>
+            <select
+              value={filters.locality}
+              onChange={(e) => updateFilter("locality", e.target.value === "All Localities" ? "" : e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F5EF]/70 border border-[#E5E0D8] text-xs font-bold text-[#17202A] outline-none focus:border-[#39B86B] focus:bg-white"
+            >
+              {localities.map((loc) => (
+                <option key={loc} value={loc === "All Localities" ? "" : loc}>
+                  {loc}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Accommodation Type */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[#8A96A3] uppercase tracking-wider flex items-center gap-1">
+              <Building className="w-3.5 h-3.5 text-[#39B86B]" />
+              Stay Type
+            </label>
+            <select
+              value={filters.type}
+              onChange={(e) => updateFilter("type", e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F5EF]/70 border border-[#E5E0D8] text-xs font-bold text-[#17202A] outline-none focus:border-[#39B86B] focus:bg-white"
+            >
+              {accommodationTypes.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Budget Min */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[#8A96A3] uppercase tracking-wider">
+              Min Effective Budget
             </label>
             <input
               type="number"
               value={filters.budgetMin}
-              onChange={(event) => updateFilter("budgetMin", event.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] placeholder:text-[#8A96A3] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none transition-all no-spinner"
+              onChange={(e) => updateFilter("budgetMin", e.target.value)}
               placeholder="e.g. 5000"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F5EF]/70 border border-[#E5E0D8] text-xs font-bold text-[#17202A] outline-none focus:border-[#39B86B] focus:bg-white"
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
-              Max Budget (₹/mo)
+          {/* Budget Max */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[#8A96A3] uppercase tracking-wider">
+              Max Effective Budget
             </label>
             <input
               type="number"
               value={filters.budgetMax}
-              onChange={(event) => updateFilter("budgetMax", event.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] placeholder:text-[#8A96A3] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none transition-all no-spinner"
+              onChange={(e) => updateFilter("budgetMax", e.target.value)}
               placeholder="e.g. 15000"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F5EF]/70 border border-[#E5E0D8] text-xs font-bold text-[#17202A] outline-none focus:border-[#39B86B] focus:bg-white"
             />
           </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
-              Property Type
-            </label>
-            <select
-              value={filters.type}
-              onChange={(event) => updateFilter("type", event.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none transition-all"
-            >
-              <option value="">All Accommodation Types</option>
-              <option value="PG">PG (Paying Guest)</option>
-              <option value="HOSTEL">Student Hostel</option>
-              <option value="FLAT">Independent Flat</option>
-            </select>
-          </div>
         </div>
 
-        <div className="mt-5 pt-4 border-t border-[#E5E0D8] flex items-center justify-between">
-          <button
-            onClick={resetFilters}
-            type="button"
-            className="text-xs font-bold text-[#596573] hover:text-[#17202A] flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reset Filters
-          </button>
-          <button
-            onClick={() => executeSearch()}
-            className="btn-primary text-xs py-2 px-5 font-bold flex items-center gap-1.5 cursor-pointer"
-          >
-            <Search className="w-3.5 h-3.5" />
-            Apply Search
-          </button>
+        {/* Amenity Filter Chips */}
+        <div className="pt-2 border-t border-[#E5E0D8] flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <span className="text-[11px] font-bold text-[#8A96A3] uppercase tracking-wider mr-1 flex-shrink-0">
+            Amenities:
+          </span>
+          {amenities.map((amenity) => {
+            const isSelected = selectedAmenity === amenity.id;
+            return (
+              <button
+                key={amenity.id}
+                onClick={() => setSelectedAmenity(amenity.id)}
+                className={cn(
+                  "px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer",
+                  isSelected
+                    ? "bg-[#17202A] text-white"
+                    : "bg-[#F7F5EF] text-[#596573] hover:text-[#17202A] hover:bg-[#E5E0D8]"
+                )}
+              >
+                {amenity.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Results Header */}
-      <div className="flex items-center justify-between text-xs font-bold text-[#596573] px-1">
-        <span>
-          Showing {results.length} verified {results.length === 1 ? "stay" : "stays"}
-        </span>
-      </div>
-
+      {/* Error display */}
       {error && (
         <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
 
+      {/* Results Header */}
+      <div className="flex items-center justify-between text-xs text-[#596573]">
+        <span className="font-bold text-[#17202A]">
+          Found {filteredProperties.length} verified stays
+        </span>
+      </div>
+
+      {/* Loading Skeleton */}
       {loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="campus-card h-80 animate-pulse bg-white/60 border border-[#E5E0D8]" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div
+              key={i}
+              className="rounded-3xl h-96 animate-pulse bg-white border border-[#E5E0D8] p-4 flex flex-col justify-between"
+            >
+              <div className="aspect-[16/10] bg-slate-100 rounded-2xl w-full" />
+              <div className="space-y-2 mt-4">
+                <div className="h-4 bg-slate-100 rounded w-3/4" />
+                <div className="h-3 bg-slate-100 rounded w-1/2" />
+              </div>
+              <div className="h-8 bg-slate-100 rounded-xl mt-4" />
+            </div>
           ))}
         </div>
       )}
 
-      {!loading && results.length === 0 && !error && (
+      {/* Property Cards Grid */}
+      {!loading && filteredProperties.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProperties.map((prop, idx) => (
+            <PropertyCard
+              key={prop.id}
+              result={{
+                property: prop,
+                score: prop.matchScore ?? 0,
+                explanation: prop.aiExplanation ?? "Verified student stay matching your search parameters.",
+              }}
+              rank={idx + 1}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && filteredProperties.length === 0 && !error && (
         <div className="campus-card p-12 text-center max-w-md mx-auto bg-white border border-[#E5E0D8]">
           <div className="w-12 h-12 rounded-2xl bg-[#F7F5EF] flex items-center justify-center text-[#596573] mx-auto mb-4">
             <Search className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-[#17202A] mb-1">No matching properties</h3>
+          <h3 className="text-lg font-bold text-[#17202A] mb-1">No stays match your criteria</h3>
           <p className="text-xs text-[#596573] mb-6">
-            We couldn&apos;t find verified stays matching those exact criteria. Try broadening your budget or location.
+            Try adjusting your budget range, changing the locality, or resetting active amenity filters.
           </p>
-          <button onClick={resetFilters} className="btn-secondary text-xs py-2 px-4 font-bold cursor-pointer">
-            Clear all filters
+          <button
+            onClick={resetFilters}
+            className="btn-primary text-xs py-2 px-4 font-bold"
+          >
+            Reset All Filters
           </button>
-        </div>
-      )}
-
-      {!loading && results.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {results.map((result, idx) => (
-            <PropertyCard
-              key={result.property.id}
-              result={result}
-              rank={idx + 1}
-            />
-          ))}
         </div>
       )}
     </div>
   );
 }
 
-export default function SearchPage() {
+export default function StudentSearchPage() {
   return (
-    <Suspense fallback={<p className="text-xs text-[#8A96A3]">Loading search portal...</p>}>
+    <Suspense
+      fallback={
+        <div className="p-16 text-center">
+          <div className="w-10 h-10 border-3 border-[#39B86B] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-xs font-bold text-[#596573]">Loading search portal...</p>
+        </div>
+      }
+    >
       <SearchContent />
     </Suspense>
   );

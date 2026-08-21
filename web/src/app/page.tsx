@@ -24,6 +24,7 @@ import { getProperties, getStoredUser, logout } from "@/lib/api";
 import type { Property, User } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { getEffectiveMonthlyCost, getAvailabilityBadge } from "@/lib/scoring";
+import PropertyCard from "@/components/shared/PropertyCard";
 
 export default function HomePage() {
   const router = useRouter();
@@ -583,70 +584,17 @@ export default function HomePage() {
             </div>
           ) : featuredProperties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredProperties.map((prop) => {
-                const effective = getEffectiveMonthlyCost(prop);
-                const badge = getAvailabilityBadge(prop);
-                return (
-                  <div key={prop.id} className="campus-card overflow-hidden flex flex-col justify-between group bg-white border border-[#E5E0D8]">
-                    <div className="p-5 pb-4 bg-[#FAF8F5] border-b border-[#E5E0D8]">
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#EBF8F0] text-[#2A8C50] border border-[#39B86B]/20 flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3" />
-                          Verified Stay
-                        </span>
-                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${badge.color}`}>
-                          {badge.label}
-                        </span>
-                      </div>
-
-                      <h3 className="text-lg font-bold text-[#17202A] group-hover:text-[#39B86B] transition-colors mb-1 line-clamp-1">
-                        {prop.name}
-                      </h3>
-                      <p className="text-xs text-[#596573] flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-[#8A96A3]" />
-                        <span>{prop.address}</span>
-                      </p>
-                    </div>
-
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                      <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-[#F7F5EF] text-xs border border-[#E5E0D8]/60">
-                        <div>
-                          <span className="text-[#8A96A3] block text-[10px] uppercase font-semibold">Commute</span>
-                          <span className="font-bold text-[#17202A]">{prop.commuteTimeMin} min ({prop.distanceKm} km)</span>
-                        </div>
-                        <div>
-                          <span className="text-[#8A96A3] block text-[10px] uppercase font-semibold">Live Vacancy</span>
-                          <span className="font-bold text-[#17202A]">{prop.available} of {prop.capacity} beds</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1.5">
-                        {prop.facilities?.slice(0, 3).map((f) => (
-                          <span key={f} className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-[#596573] font-medium">
-                            {f}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="pt-3 border-t border-[#E5E0D8] flex items-center justify-between">
-                        <div>
-                          <div className="text-[10px] uppercase font-bold text-[#8A96A3]">Effective Monthly</div>
-                          <div className="text-base font-extrabold text-[#17202A]">
-                            {formatCurrency(effective)}
-                            <span className="text-xs font-normal text-[#8A96A3]"> /mo</span>
-                          </div>
-                        </div>
-                        <Link
-                          href={`/student/property/${prop.id}`}
-                          className="btn-primary text-xs py-2 px-3.5 font-bold"
-                        >
-                          View Details
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {featuredProperties.map((prop, idx) => (
+                <PropertyCard
+                  key={prop.id}
+                  result={{
+                    property: prop,
+                    score: prop.matchScore ?? 92 - idx * 4,
+                    explanation: "Featured verified student accommodation in Greater Noida.",
+                  }}
+                  rank={idx + 1}
+                />
+              ))}
             </div>
           ) : (
             <div className="campus-card p-12 text-center max-w-md mx-auto bg-white border border-[#E5E0D8]">
