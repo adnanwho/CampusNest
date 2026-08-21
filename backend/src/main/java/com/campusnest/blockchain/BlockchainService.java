@@ -1,6 +1,11 @@
 package com.campusnest.blockchain;
 
-import lombok.extern.slf4j.Slf4j;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
+import java.util.HexFormat;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
@@ -12,11 +17,8 @@ import org.web3j.tx.gas.DefaultGasProvider;
 
 import com.campusnest.model.Property;
 import com.campusnest.model.VerificationStatus;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.HexFormat;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -70,6 +72,7 @@ public class BlockchainService {
 
     public String computeCanonicalHash(Property property, String adminSignoff, VerificationStatus status, Instant timestamp) {
         String payload = property.getId() + "|" +
+            property.getListerId() + "|" +
                 safe(property.getAddress()) + "|" +
                 property.getCapacity() + "|" +
                 property.getRent() + "|" +
@@ -86,7 +89,7 @@ public class BlockchainService {
     private String sha256(String payload) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(payload.toString().getBytes(StandardCharsets.UTF_8));
+            byte[] hash = digest.digest(payload.getBytes(StandardCharsets.UTF_8));
             return "0x" + HexFormat.of().formatHex(hash);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to compute record hash", e);
