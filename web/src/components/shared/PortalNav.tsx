@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, Search, Shield, User, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { getStoredUser, logout } from "@/lib/api";
 
 interface NavItem {
   label: string;
@@ -20,9 +21,11 @@ interface PortalNavProps {
 export default function PortalNav({ role, userName }: PortalNavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const storedName = getStoredUser()?.name ?? userName;
 
   const studentNav: NavItem[] = [
     { label: "Discover", href: "/student", icon: <Search className="w-4 h-4" /> },
+    { label: "Search", href: "/student/search", icon: <Search className="w-4 h-4" /> },
     { label: "Compare", href: "/student/compare", icon: <Home className="w-4 h-4" /> },
     { label: "Profile", href: "/student/profile", icon: <User className="w-4 h-4" /> },
   ];
@@ -79,10 +82,11 @@ export default function PortalNav({ role, userName }: PortalNavProps) {
               {role}
             </span>
             <span className="hidden md:inline-flex text-sm text-slate-600">
-              {userName || "Demo User"}
+              {storedName || "Authenticated User"}
             </span>
             <Link
               href="/"
+              onClick={logout}
               className="text-sm text-slate-500 hover:text-slate-900 font-medium"
             >
               Exit

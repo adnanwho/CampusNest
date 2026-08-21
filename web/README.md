@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CampusNest Frontend
 
-## Getting Started
+React + Vite / Next.js frontend for the CampusNest MVP — AI-powered student housing with verified listings, live availability, and blockchain-backed trust.
 
-First, run the development server:
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd web
+npm install          # or npm ci
+npm run dev          # → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The frontend proxies all API calls to `http://localhost:8080/api` (configurable via `NEXT_PUBLIC_API_URL`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Demo Credentials
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+One-click login on the landing page, or log in manually:
 
-## Learn More
+| Role    | Email                  | Password   |
+|---------|------------------------|------------|
+| Student | <aarav@campusnest.demo>  | student123 |
+| Lister  | <lister@campusnest.demo> | lister123  |
+| Admin   | <admin@campusnest.demo>  | admin123   |
 
-To learn more about Next.js, take a look at the following resources:
+## App Flows
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Login** — `/` landing page with one-click role demo or manual email login. JWT is stored in `localStorage`.
+2. **Student Dashboard** — `/student` — AI-powered recommendations with match scores, availability badges, and explanations.
+3. **Property Discovery** — `/student` — filtered list of verified properties with match scoring.
+4. **Property Details** — `/student/property/[id]` — full cost breakdown, availability, facilities, reviews, and blockchain verification record.
+5. **Match Score / Explanation** — shown on every property card and detail page. Uses `property.matchScore` and `property.aiExplanation` from the backend (falls back to frontend scoring via `lib/scoring.ts`).
+6. **Compare** — `/student/compare` — side-by-side table of up to 3 properties using the backend `/properties/compare` endpoint.
+7. **Lister Dashboard** — `/lister` — manage listings, update live occupancy, and submit for verification.
+8. **Admin Dashboard** — `/admin` — review pending verifications, approve (creates blockchain record), or reject.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Contract
 
-## Deploy on Vercel
+All endpoints are relative to `http://localhost:8080/api`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Method | Endpoint                             | Description                          |
+|--------|--------------------------------------|--------------------------------------|
+| POST   | `/auth/login`                        | Returns JWT + user info              |
+| GET    | `/students/me`                       | Current student profile              |
+| GET    | `/recommendations`                   | AI-scored property recommendations   |
+| GET    | `/properties`                        | Search verified available properties |
+| GET    | `/properties/{id}`                   | Property detail with reviews & verification |
+| POST   | `/properties/compare`                | Compare up to 3 properties           |
+| GET    | `/listings/mine`                     | Lister's own listings                |
+| POST   | `/listings`                          | Create a new listing                 |
+| PUT    | `/listings/{id}`                     | Update a listing                     |
+| PUT    | `/listings/{id}/availability`        | Update occupancy                     |
+| POST   | `/listings/{id}/verify`              | Submit for admin verification        |
+| GET    | `/admin/verifications/pending`       | Pending verification queue           |
+| POST   | `/admin/verifications/{id}/review`   | Mark as under review                 |
+| POST   | `/admin/verifications/{id}/approve` | Approve + create blockchain record   |
+| POST   | `/admin/verifications/{id}/reject`   | Reject with reason                   |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Full interactive API docs: <http://localhost:8080/api/swagger-ui.html>
+
+## Build
+
+```bash
+npm run build    # production build
+npm run lint     # ESLint
+```

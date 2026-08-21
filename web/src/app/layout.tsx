@@ -13,8 +13,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "CampusNest — AI-Powered Student Accommodation Marketplace",
-  description: "Find verified student accommodation with AI-powered recommendations, live availability, and blockchain-backed verification.",
+  title: "CampusNest — Smart Student Accommodation Marketplace",
+  description: "Find verified student accommodation with smart recommendations, live availability, and blockchain-backed verification.",
 };
 
 export default function RootLayout({

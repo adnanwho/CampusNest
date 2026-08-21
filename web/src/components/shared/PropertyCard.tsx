@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { MapPin, IndianRupee, Wifi, Shield, Utensils, Car, Zap, Tv, Dumbbell, BookOpen, Star, ChevronRight } from "lucide-react";
+import { MapPin, IndianRupee, Wifi, Shield, Utensils, Car, Zap, Dumbbell, BookOpen, Star, ChevronRight } from "lucide-react";
 import { MatchResult } from "@/lib/types";
 import { getAvailabilityBadge } from "@/lib/scoring";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -26,8 +25,7 @@ const facilityIcons: Record<string, React.ReactNode> = {
 export default function PropertyCard({ result, rank }: PropertyCardProps) {
   const { property, score, explanation } = result;
   const badge = getAvailabilityBadge(property);
-  const effectiveCost = property.rent + property.foodCost + property.electricityCost + property.wifiCost + property.maintenanceCost;
-  const [isHovered, setIsHovered] = useState(false);
+  const effectiveCost = property.effectiveMonthlyCost;
 
   const circumference = 2 * Math.PI * 34;
   const dashOffset = circumference - (score / 100) * circumference;
@@ -35,11 +33,7 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
   const scoreColor = score >= 80 ? "#10b981" : score >= 60 ? "#f59e0b" : "#ef4444";
 
   return (
-    <div
-      className="glass-card rounded-2xl overflow-hidden group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="glass-card rounded-2xl overflow-hidden group">
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
@@ -128,7 +122,7 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
         <div className="px-6 py-3 bg-emerald-50 border-t border-emerald-100 flex items-center gap-2">
           <Shield className="w-4 h-4 text-emerald-600" />
           <span className="text-sm font-medium text-emerald-700">
-            Verified on Blockchain
+            Verified Property
           </span>
         </div>
       )}

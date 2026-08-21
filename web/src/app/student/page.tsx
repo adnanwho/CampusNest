@@ -1,14 +1,29 @@
+"use client";
+
 import StudentLayout from "@/app/student/layout";
-import { goldenProfiles, demoProperties } from "@/lib/data";
-import { calculateMatchScore, getAvailabilityBadge, getEffectiveMonthlyCost } from "@/lib/scoring";
+import { getRecommendations, getStudentProfile } from "@/lib/api";
+import type { MatchResult, StudentProfile } from "@/lib/types";
+import { useEffect, useState } from "react";
 import PropertyCard from "@/components/shared/PropertyCard";
 import ProfileSelector from "@/components/student/ProfileSelector";
 
 export default function StudentPage() {
-  const profile = goldenProfiles[0];
-  const results = demoProperties
-    .map((p) => calculateMatchScore(p, profile))
-    .sort((a, b) => b.score - a.score);
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [results, setResults] = useState<MatchResult[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    Promise.all([getStudentProfile(), getRecommendations()])
+      .then(([student, properties]) => {
+        setProfile(student);
+        setResults(properties.map((property) => ({
+          property,
+          score: property.matchScore ?? 0,
+          explanation: property.aiExplanation ?? "Recommendation from your saved preferences.",
+        })));
+      })
+      .catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Unable to load recommendations"));
+  }, []);
 
   return (
     <StudentLayout>
@@ -19,12 +34,14 @@ export default function StudentPage() {
               Discover Properties
             </h1>
             <p className="text-slate-600">
-              AI-powered recommendations for <span className="font-semibold text-indigo-600">{profile.name}</span>
+              Smart recommendations for <span className="font-semibold text-indigo-600">{profile?.name ?? "your profile"}</span>
             </p>
           </div>
-          <ProfileSelector />
+          {profile && <ProfileSelector selectedId={profile.id} />}
         </div>
 
+        {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+        {!error && results.length === 0 && <p className="text-slate-500">Loading recommendations...</p>}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {results.map((result, idx) => (
             <PropertyCard

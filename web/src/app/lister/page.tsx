@@ -1,22 +1,50 @@
 "use client";
 
 import ListerLayout from "@/app/lister/layout";
-import { demoProperties } from "@/lib/data";
+import { getMyListings, submitForVerification, updateAvailability } from "@/lib/api";
+import type { Property } from "@/lib/types";
 import { useState } from "react";
+import { useEffect } from "react";
 import PropertyDetailModal from "@/components/shared/PropertyDetailModal";
+import Link from "next/link";
 
 export default function ListerPage() {
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
-  const myProperties = demoProperties.filter((p) => p.listerId === "lister-1");
+  const [myProperties, setMyProperties] = useState<Property[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getMyListings().then(setMyProperties).catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Unable to load listings"));
+  }, []);
+
+  async function changeAvailability(property: Property, delta: number) {
+    try {
+      const updated = await updateAvailability(property.id, Math.max(0, property.occupied + delta));
+      setMyProperties((current) => current.map((item) => item.id === updated.id ? updated : item));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Unable to update availability");
+    }
+  }
+
+  async function submit(property: Property) {
+    try {
+      const updated = await submitForVerification(property.id);
+      setMyProperties((current) => current.map((item) => item.id === updated.id ? updated : item));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Unable to submit listing");
+    }
+  }
 
   return (
     <ListerLayout>
       <div className="space-y-6">
+        {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">My Properties</h1>
             <p className="text-slate-600">Manage your listings and live availability</p>
           </div>
+          <Link href="/lister/add" className="btn-primary">Add Property</Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -65,20 +93,24 @@ export default function ListerPage() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    property.verificationStatus === "VERIFIED"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : property.verificationStatus === "UNDER_REVIEW"
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${property.verificationStatus === "VERIFIED"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : property.verificationStatus === "UNDER_REVIEW"
                       ? "bg-yellow-50 text-yellow-700"
-                      : property.verificationStatus === "SUBMITTED"
-                      ? "bg-blue-50 text-blue-700"
-                      : "bg-slate-100 text-slate-600"
-                  }`}>
+                      : property.verificationStatus === "SUBMITTED_FOR_VERIFICATION"
+                        ? "bg-blue-50 text-blue-700"
+                        : "bg-slate-100 text-slate-600"
+                    }`}>
                     {property.verificationStatus.replace("_", " ")}
                   </span>
-                  <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                    Manage
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button onClick={(event) => { event.stopPropagation(); void changeAvailability(property, -1); }} className="text-sm font-medium text-slate-600">- bed</button>
+                    <button onClick={(event) => { event.stopPropagation(); void changeAvailability(property, 1); }} className="text-sm font-medium text-slate-600">+ bed</button>
+                    <Link href={`/lister/${property.id}/edit`} onClick={(event) => event.stopPropagation()} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">Edit</Link>
+                    {property.verificationStatus === "DRAFT" || property.verificationStatus === "REJECTED" ? (
+                      <button onClick={(event) => { event.stopPropagation(); void submit(property); }} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">Submit</button>
+                    ) : <span className="text-sm font-medium text-indigo-600">Manage</span>}
+                  </div>
                 </div>
               </div>
             );
@@ -87,7 +119,7 @@ export default function ListerPage() {
 
         {selectedProperty && (
           <PropertyDetailModal
-            property={demoProperties.find((p) => p.id === selectedProperty)!}
+            property={myProperties.find((p) => p.id === selectedProperty)!}
             onClose={() => setSelectedProperty(null)}
           />
         )}

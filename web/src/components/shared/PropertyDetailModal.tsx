@@ -5,7 +5,7 @@ import Link from "next/link";
 import { X, MapPin, IndianRupee, Wifi, Shield, Utensils, Car, Zap, Tv, Dumbbell, BookOpen, Star, Share2, ShieldCheck, ExternalLink } from "lucide-react";
 import { Property } from "@/lib/types";
 import { getEffectiveMonthlyCost, getAvailabilityBadge } from "@/lib/scoring";
-import { cn, formatCurrency, generateMockTxHash, generateSHA256 } from "@/lib/utils";
+import { cn, formatCurrency, generateSHA256 } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface PropertyDetailModalProps {
@@ -35,10 +35,10 @@ export default function PropertyDetailModal({ property, onClose }: PropertyDetai
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
-    const recordHash = await generateSHA256(
-      `${property.id}-${property.name}-${property.address}-${property.capacity}-admin-signoff`
+    const demoHash = await generateSHA256(
+      `${property.id}-${property.name}-${property.address}-${property.capacity}-demo-hash`
     );
-    await navigator.clipboard.writeText(recordHash);
+    await navigator.clipboard.writeText(demoHash);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -194,7 +194,7 @@ export default function PropertyDetailModal({ property, onClose }: PropertyDetai
                 className="btn-secondary flex items-center justify-center gap-2"
               >
                 <Share2 className="w-4 h-4" />
-                {copied ? "Copied!" : "Copy Hash"}
+                {copied ? "Copied!" : "Copy Demo Hash"}
               </button>
               <Link
                 href={`/student/compare?add=${property.id}`}
@@ -220,6 +220,9 @@ export default function PropertyDetailModal({ property, onClose }: PropertyDetai
 }
 
 function BlockchainModal({ property, onClose }: { property: Property; onClose: () => void }) {
+  const verification = property.verification;
+  const txHash = verification?.blockchainTx ?? property.blockchainTx;
+  const isDemo = !txHash || txHash.startsWith("mock-") || txHash.startsWith("failed-");
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -227,7 +230,7 @@ function BlockchainModal({ property, onClose }: { property: Property; onClose: (
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/60 backdrop:blur-sm"
           onClick={onClose}
         />
         <motion.div
@@ -239,12 +242,18 @@ function BlockchainModal({ property, onClose }: { property: Property; onClose: (
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              Blockchain Verification Record
+              {isDemo ? "Demo Verification Record" : "Blockchain Verification Record"}
             </h3>
             <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100">
               <X className="w-5 h-5 text-slate-500" />
             </button>
           </div>
+
+          {isDemo && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+              Blockchain is currently in demo mode. The hash below is a local verification signature, not a real on-chain transaction.
+            </div>
+          )}
 
           <div className="space-y-4">
             <div className="bg-slate-50 rounded-xl p-4 space-y-3">
@@ -254,35 +263,37 @@ function BlockchainModal({ property, onClose }: { property: Property; onClose: (
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Record Hash (SHA-256)</div>
-                <div className="text-sm font-mono text-slate-900 break-all">{property.verificationHash}</div>
+                <div className="text-sm font-mono text-slate-900 break-all">{verification?.recordHash ?? property.verificationHash}</div>
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Timestamp</div>
-                <div className="text-sm font-mono text-slate-900">{property.verificationTimestamp}</div>
+                <div className="text-sm font-mono text-slate-900">{verification?.timestamp ?? property.verificationTimestamp}</div>
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Transaction Hash</div>
-                <div className="text-sm font-mono text-slate-900 break-all">{property.blockchainTx}</div>
+                <div className="text-sm font-mono text-slate-900 break-all">{txHash ?? "Not available"}</div>
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Network</div>
-                <div className="text-sm font-medium text-slate-900">Polygon Amoy Testnet</div>
+                <div className="text-sm font-medium text-slate-900">{verification?.networkName ?? "Polygon Amoy"}</div>
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Contract Address</div>
-                <div className="text-sm font-mono text-slate-900 break-all">0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D</div>
+                <div className="text-sm font-mono text-slate-900 break-all">{verification?.contractAddress ?? "Not available"}</div>
               </div>
             </div>
 
-            <a
-              href={`https://amoy.polygonscan.com/tx/${property.blockchainTx}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary w-full flex items-center justify-center gap-2"
-            >
-              <ExternalLink className="w-4 h-4" />
-              View on Polygon Amoy Explorer
-            </a>
+            {!isDemo && verification?.explorerUrl && (
+              <a
+                href={verification.explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary w-full flex items-center justify-center gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View on Explorer
+              </a>
+            )}
           </div>
         </motion.div>
       </div>
