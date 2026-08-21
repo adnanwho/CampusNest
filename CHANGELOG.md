@@ -11,29 +11,35 @@ All notable CampusNest project changes are documented here.
 
 ### Added
 
-- Started the Option A unified Next.js application in `web/`.
-- Added Next.js 15 App Router, TypeScript, Tailwind CSS, ESLint, and Turbopack setup.
-- Added a typed CampusNest domain module with property, student preference, verification, and availability types.
-- Added seeded marketplace properties for the initial discovery flow.
-- Added effective monthly cost calculation using rent, food, electricity, Wi-Fi, and maintenance costs.
-- Added availability calculation and status labels for available, filling fast, almost full, and full properties.
-- Added deterministic five-factor recommendation scoring:
-  - Budget compatibility: 30%
-  - Distance and commute: 25%
-  - Verification trust: 20%
-  - Facilities: 15%
-  - Lifestyle compatibility: 10%
-- Added filtered, ranked property discovery with verified and available listings only.
-- Added App Router API endpoints:
-  - `GET /api/health`
-  - `GET /api/properties`
-  - `GET /api/properties/{id}`
+- Added a Next.js 16 frontend with Student, Lister, and Admin portals.
+- Added student discovery, profile, property detail, and property comparison screens.
+- Added lister dashboard and listing creation screens with occupancy controls.
+- Added admin verification queue and approval/rejection screens.
+- Added shared portal navigation, property cards, detail modals, role switching, and responsive Tailwind styling.
+- Added Framer Motion and Lucide React dependencies for frontend interaction and icons.
+
+- Recorded the earlier Option A prototype work for project history:
+  - Added a typed CampusNest domain module with property, student preference, verification, and availability types.
+  - Added seeded marketplace properties for the initial discovery flow.
+  - Added effective monthly cost calculation using rent, food, electricity, Wi-Fi, and maintenance costs.
+  - Added availability calculation and status labels for available, filling fast, almost full, and full properties.
+  - Added deterministic five-factor recommendation scoring:
+    - Budget compatibility: 30%
+    - Distance and commute: 25%
+    - Verification trust: 20%
+    - Facilities: 15%
+    - Lifestyle compatibility: 10%
+  - Added filtered, ranked property discovery with verified and available listings only.
+  - Added the prototype App Router API endpoints: `GET /api/health`, `GET /api/properties`, and `GET /api/properties/{id}`.
 
 ### Validation
 
-- Confirmed the Next.js application passes `npm run lint`.
-- Confirmed the Next.js application passes `npm run build`.
-- Smoke-tested the health and filtered property endpoints locally.
+- Added six Spring Boot unit tests covering availability thresholds, effective cost, recommendation scoring, and explanation bands.
+- Added three H2-backed MockMvc security integration tests covering public auth, protected student routes, admin registration rejection, and public verification lookup.
+- Configured unauthenticated API requests to return `401 Unauthorized`, preserving `403 Forbidden` for authenticated role violations.
+- Confirmed the Spring Boot test suite passes with the H2 profile.
+- Confirmed the earlier Next.js prototype passed `npm run lint` and `npm run build`.
+- Smoke-tested the earlier prototype health and filtered property endpoints locally.
 
 ## Initial Backend Foundation
 
@@ -62,9 +68,9 @@ All notable CampusNest project changes are documented here.
 
 ### Known Limitations
 
-- The Next.js frontend experience is not implemented yet.
-- The Next.js data store is currently in memory and is not persistent across restarts.
-- Authentication, lister management, admin verification, comparison, and blockchain APIs still need to be implemented in the unified Next.js backend.
+- The Next.js frontend currently uses local demo data and scoring instead of the Spring Boot API.
+- Frontend authentication and role enforcement are not yet connected to backend JWT authentication.
+- Frontend lister management, admin verification, comparison, and occupancy actions still need API integration.
+- Persistence-backed and endpoint-level domain tests beyond the current security coverage are still pending.
 - Recommendation explanations are currently deterministic text rather than Gemini-generated content.
 - Blockchain is disabled by default; seeded transaction identifiers are local demo values.
-- The backend currently has no automated test sources.
