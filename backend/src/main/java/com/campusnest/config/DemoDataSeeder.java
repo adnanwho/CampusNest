@@ -195,13 +195,7 @@ public class DemoDataSeeder implements ApplicationRunner {
 
         if (property.getVerificationStatus() == VerificationStatus.VERIFIED) {
             Instant timestamp = Instant.now();
-<<<<<<< HEAD
-            String hash = blockchainService.computeRecordHash(
-                    property.getId(), property.getListerId(), timestamp.toString(), VerificationStatus.VERIFIED.name(),
-                    property.getAddress(), property.getCapacity(), null);
-=======
             String hash = blockchainService.computeCanonicalHash(property, String.valueOf(adminUserId), VerificationStatus.VERIFIED, timestamp);
->>>>>>> origin/main
             property.setVerificationHash(hash);
             property.setVerificationTimestamp(timestamp);
             property.setBlockchainTx("mock-seed-" + Math.abs(property.getName().hashCode()));
