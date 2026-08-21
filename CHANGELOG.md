@@ -4,6 +4,11 @@ All notable CampusNest project changes are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- Reverted the temporary Option A unified Next.js backend prototype.
+- Selected Option B: retain the Spring Boot REST backend and add a separate Next.js frontend when frontend implementation resumes.
+
 ### Added
 
 - Started the Option A unified Next.js application in `web/`.

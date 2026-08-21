@@ -10,10 +10,10 @@ Build and deploy the complete **CampusNest MVP**: an AI-Powered Student Accommod
 > **Backend Architecture Alignment**:
 > The PRD mentions Java/Spring Boot for the backend and Next.js + TypeScript + Tailwind CSS for the frontend. 
 > Because `mvn` is not installed globally in PATH, we can either:
-> 1. **Option A (Full-Stack Next.js 15 App Router + TypeScript + SQLite/PostgreSQL)**: Build the entire system inside a single, unified, high-performance Next.js application with typed API routes, server actions, client stores, deterministic scoring engine, Gemini AI explanation integration, and Web3 verification hashing. This provides instant zero-latency judge demos, seamless single-command deployment, and zero port mismatch issues.
-> 2. **Option B (Polyglot: Spring Boot REST API with Maven Wrapper + Next.js Frontend)**: Set up a standalone Spring Boot application (`mvnw`) on port 8080 exposing all 12+ REST endpoints defined in PRD Section 15, and connect the Next.js frontend on port 3000 to the Spring Boot backend.
+> 1. **Option A (Full-Stack Next.js 15 App Router + TypeScript + SQLite/PostgreSQL)**: Not selected. This unified backend approach was prototyped and reverted in favor of the separated backend architecture below.
+> 2. **Option B (Polyglot: Spring Boot REST API with Maven Wrapper + Next.js Frontend)**: **Selected.** Maintain the standalone Spring Boot application (`mvnw`) on port 8080 exposing the REST endpoints defined in PRD Section 15, and connect a Next.js frontend on port 3000 to the Spring Boot backend.
 >
-> *(Option A is recommended for hackathon robustness and speed, but Option B will be fully implemented if strict Spring Boot backend separation is required).*
+> *(Option B is the committed architecture for this project.)*
 
 ---
 
