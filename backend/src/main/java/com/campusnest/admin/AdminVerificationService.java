@@ -1,5 +1,13 @@
 package com.campusnest.admin;
 
+import java.time.Instant;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.campusnest.auth.UserPrincipal;
 import com.campusnest.blockchain.BlockchainService;
 import com.campusnest.lister.dto.ListingDtos.RejectRequest;
@@ -10,14 +18,8 @@ import com.campusnest.property.PropertyMapper;
 import com.campusnest.property.dto.PropertyDtos.PropertySummaryDto;
 import com.campusnest.repository.PropertyRepository;
 import com.campusnest.repository.VerificationRecordRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +48,9 @@ public class AdminVerificationService {
     public PropertySummaryDto approve(UserPrincipal admin, Long id) {
         Property property = getPendingProperty(id);
         Instant now = Instant.now();
-        String hash = blockchainService.computeRecordHash(property.getId(), property.getListerId(), now.toString(), VerificationStatus.VERIFIED.name());
+        String hash = blockchainService.computeRecordHash(
+                property.getId(), property.getListerId(), now.toString(), VerificationStatus.VERIFIED.name(),
+                property.getAddress(), property.getCapacity(), admin.getId());
         BlockchainService.BlockchainResult chain = blockchainService.registerVerification(property.getId(), hash);
 
         property.setVerificationStatus(VerificationStatus.VERIFIED);
@@ -73,7 +77,9 @@ public class AdminVerificationService {
     public PropertySummaryDto reject(UserPrincipal admin, Long id, RejectRequest request) {
         Property property = getPendingProperty(id);
         Instant now = Instant.now();
-        String hash = blockchainService.computeRecordHash(property.getId(), property.getListerId(), now.toString(), VerificationStatus.REJECTED.name());
+        String hash = blockchainService.computeRecordHash(
+                property.getId(), property.getListerId(), now.toString(), VerificationStatus.REJECTED.name(),
+                property.getAddress(), property.getCapacity(), admin.getId());
         property.setVerificationStatus(VerificationStatus.REJECTED);
         property.setRejectionReason(request.getReason());
         property = propertyRepository.save(property);

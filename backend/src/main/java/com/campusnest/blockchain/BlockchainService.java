@@ -43,10 +43,28 @@ public class BlockchainService {
     }
 
     public String computeRecordHash(Long propertyId, Long listerId, String timestamp, String status) {
-        String payload = propertyId + "|" + listerId + "|" + timestamp + "|" + status;
+        return computeRecordHash(propertyId, listerId, timestamp, status, null, null, null);
+    }
+
+    public String computeRecordHash(Long propertyId, Long listerId, String timestamp, String status,
+                                    String address, Integer capacity, Long adminId) {
+        StringBuilder payload = new StringBuilder();
+        payload.append(propertyId).append("|")
+                .append(listerId).append("|")
+                .append(timestamp).append("|")
+                .append(status);
+        if (address != null && !address.isBlank()) {
+            payload.append("|").append(address.trim().toLowerCase());
+        }
+        if (capacity != null) {
+            payload.append("|").append(capacity);
+        }
+        if (adminId != null) {
+            payload.append("|").append(adminId);
+        }
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(payload.getBytes(StandardCharsets.UTF_8));
+            byte[] hash = digest.digest(payload.toString().getBytes(StandardCharsets.UTF_8));
             return "0x" + HexFormat.of().formatHex(hash);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to compute record hash", e);

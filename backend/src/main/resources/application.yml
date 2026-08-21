@@ -24,7 +24,7 @@ spring:
 
 campusnest:
   jwt:
-    secret: ${JWT_SECRET:campusnest-dev-secret-key-change-in-production-min-32-chars}
+    secret: ${JWT_SECRET:}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000}

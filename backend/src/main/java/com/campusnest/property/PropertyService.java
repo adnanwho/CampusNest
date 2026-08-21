@@ -1,7 +1,17 @@
 package com.campusnest.property;
 
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.campusnest.auth.UserPrincipal;
-import com.campusnest.model.*;
+import com.campusnest.model.Property;
+import com.campusnest.model.PropertyType;
+import com.campusnest.model.StudentProfile;
+import com.campusnest.model.VerificationStatus;
 import com.campusnest.property.dto.PropertyDtos.CompareItemDto;
 import com.campusnest.property.dto.PropertyDtos.PropertyDetailDto;
 import com.campusnest.property.dto.PropertyDtos.PropertySummaryDto;
@@ -10,13 +20,8 @@ import com.campusnest.repository.PropertyRepository;
 import com.campusnest.repository.ReviewRepository;
 import com.campusnest.repository.StudentProfileRepository;
 import com.campusnest.student.dto.StudentDtos.PropertySearchParams;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Comparator;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -66,8 +71,15 @@ public class PropertyService {
         if (properties.size() != propertyIds.size()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more properties were not found");
         }
-        return properties.stream()
+        List<Property> eligible = properties.stream()
                 .filter(property -> property.getVerificationStatus() == VerificationStatus.VERIFIED)
+                .filter(property -> property.getAvailable() != null && property.getAvailable() > 0)
+                .toList();
+        if (eligible.size() < 2) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Comparison requires at least 2 verified, available properties");
+        }
+        return eligible.stream()
                 .map(property -> propertyMapper.toCompareItem(property, recommendationService.score(property, profile)))
                 .toList();
     }
