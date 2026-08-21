@@ -70,7 +70,7 @@ export default function ListerPage() {
                       ? "bg-emerald-50 text-emerald-700"
                       : property.verificationStatus === "UNDER_REVIEW"
                       ? "bg-yellow-50 text-yellow-700"
-                      : property.verificationStatus === "SUBMITTED"
+                      : property.verificationStatus === "SUBMITTED_FOR_VERIFICATION"
                       ? "bg-blue-50 text-blue-700"
                       : "bg-slate-100 text-slate-600"
                   }`}>

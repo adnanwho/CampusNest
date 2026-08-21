@@ -1,6 +1,6 @@
 import StudentLayout from "@/app/student/layout";
 import { goldenProfiles, demoProperties } from "@/lib/data";
-import { calculateMatchScore, getAvailabilityBadge, getEffectiveMonthlyCost } from "@/lib/scoring";
+import { calculateMatchScore } from "@/lib/scoring";
 import PropertyCard from "@/components/shared/PropertyCard";
 import ProfileSelector from "@/components/student/ProfileSelector";
 

@@ -66,8 +66,18 @@ public class PropertyService {
         if (properties.size() != propertyIds.size()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more properties were not found");
         }
-        return properties.stream()
-                .filter(property -> property.getVerificationStatus() == VerificationStatus.VERIFIED)
+
+        List<Property> usable = properties.stream()
+                .filter(p -> p.getVerificationStatus() == VerificationStatus.VERIFIED)
+                .filter(p -> p.getAvailable() > 0)
+                .toList();
+
+        if (usable.size() < 2) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Comparison requires at least 2 verified and available properties; found " + usable.size());
+        }
+
+        return usable.stream()
                 .map(property -> propertyMapper.toCompareItem(property, recommendationService.score(property, profile)))
                 .toList();
     }

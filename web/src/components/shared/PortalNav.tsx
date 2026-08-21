@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 interface PortalNavProps {
-  role: "student" | "lister" | "admin";
+  role: "STUDENT" | "LISTER" | "ADMIN";
   userName?: string;
 }
 
@@ -36,12 +36,12 @@ export default function PortalNav({ role, userName }: PortalNavProps) {
     { label: "Verifications", href: "/admin", icon: <Shield className="w-4 h-4" /> },
   ];
 
-  const navItems = role === "student" ? studentNav : role === "lister" ? listerNav : adminNav;
+  const navItems = role === "STUDENT" ? studentNav : role === "LISTER" ? listerNav : adminNav;
 
   const roleColors = {
-    student: "text-indigo-600 bg-indigo-50 border-indigo-200",
-    lister: "text-cyan-600 bg-cyan-50 border-cyan-200",
-    admin: "text-emerald-600 bg-emerald-50 border-emerald-200",
+    STUDENT: "text-indigo-600 bg-indigo-50 border-indigo-200",
+    LISTER: "text-cyan-600 bg-cyan-50 border-cyan-200",
+    ADMIN: "text-emerald-600 bg-emerald-50 border-emerald-200",
   };
 
   return (
@@ -49,7 +49,7 @@ export default function PortalNav({ role, userName }: PortalNavProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-8">
-            <Link href={`/${role}`} className="flex items-center gap-2">
+            <Link href={`/${role.toLowerCase()}`} className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center">
                 <span className="text-white font-bold text-sm">CN</span>
               </div>

@@ -1,7 +1,6 @@
 import StudentLayout from "@/app/student/layout";
 import { demoProperties, goldenProfiles } from "@/lib/data";
 import { calculateMatchScore, getEffectiveMonthlyCost } from "@/lib/scoring";
-import PropertyCard from "@/components/shared/PropertyCard";
 import ProfileSelector from "@/components/student/ProfileSelector";
 
 export default function ComparePage() {

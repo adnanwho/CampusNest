@@ -5,7 +5,7 @@ import Link from "next/link";
 import { X, MapPin, IndianRupee, Wifi, Shield, Utensils, Car, Zap, Tv, Dumbbell, BookOpen, Star, Share2, ShieldCheck, ExternalLink } from "lucide-react";
 import { Property } from "@/lib/types";
 import { getEffectiveMonthlyCost, getAvailabilityBadge } from "@/lib/scoring";
-import { cn, formatCurrency, generateMockTxHash, generateSHA256 } from "@/lib/utils";
+import { cn, formatCurrency, generateSHA256 } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface PropertyDetailModalProps {

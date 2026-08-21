@@ -25,7 +25,7 @@ export default function RoleSwitcher({ onSelectRole }: RoleSwitcherProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button
-            onClick={() => onSelectRole("student")}
+            onClick={() => onSelectRole("STUDENT")}
             className="glass-card rounded-2xl p-8 text-left group cursor-pointer"
           >
             <div className="w-14 h-14 rounded-xl bg-indigo-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
@@ -47,7 +47,7 @@ export default function RoleSwitcher({ onSelectRole }: RoleSwitcherProps) {
           </button>
 
           <button
-            onClick={() => onSelectRole("lister")}
+            onClick={() => onSelectRole("LISTER")}
             className="glass-card rounded-2xl p-8 text-left group cursor-pointer"
           >
             <div className="w-14 h-14 rounded-xl bg-cyan-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
@@ -68,7 +68,7 @@ export default function RoleSwitcher({ onSelectRole }: RoleSwitcherProps) {
           </button>
 
           <button
-            onClick={() => onSelectRole("admin")}
+            onClick={() => onSelectRole("ADMIN")}
             className="glass-card rounded-2xl p-8 text-left group cursor-pointer"
           >
             <div className="w-14 h-14 rounded-xl bg-emerald-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">

@@ -21,7 +21,7 @@ export function calculateMatchScore(
 
   const verificationScores: Record<string, number> = {
     VERIFIED: 100,
-    SUBMITTED: 70,
+    SUBMITTED_FOR_VERIFICATION: 70,
     UNDER_REVIEW: 50,
     DRAFT: 20,
     REJECTED: 0,
@@ -59,7 +59,7 @@ export function calculateMatchScore(
 
   const typeMatch = profile.accommodationType
     ? property.type.toLowerCase() === profile.accommodationType.toLowerCase() ||
-      property.type === "Shared Flat" && profile.accommodationType === "Flat"
+      property.type === "SHARED_ACCOMMODATION" && profile.accommodationType === "FLAT"
     : true;
   const localityMatch = profile.localityPref
     ? property.locality.toLowerCase().includes(profile.localityPref.toLowerCase()) ||
@@ -114,9 +114,17 @@ export function getAvailabilityBadge(property: Property): {
   label: string;
   color: string;
 } {
+  const status = property.availabilityStatus;
+  const badges: Record<string, { label: string; color: string }> = {
+    AVAILABLE: { label: "Available", color: "bg-green-100 text-green-700" },
+    FILLING_FAST: { label: "Filling Fast", color: "bg-yellow-100 text-yellow-700" },
+    ALMOST_FULL: { label: "Almost Full", color: "bg-orange-100 text-orange-700" },
+    FULL: { label: "Full", color: "bg-red-100 text-red-700" },
+  };
+  if (status && badges[status]) return badges[status];
   const ratio = property.occupied / property.capacity;
-  if (ratio >= 1) return { label: "Full", color: "bg-red-100 text-red-700" };
-  if (ratio >= 0.8) return { label: "Almost Full", color: "bg-orange-100 text-orange-700" };
-  if (ratio >= 0.5) return { label: "Filling Fast", color: "bg-yellow-100 text-yellow-700" };
-  return { label: "Available", color: "bg-green-100 text-green-700" };
+  if (ratio >= 1) return badges.FULL;
+  if (ratio >= 0.8) return badges.ALMOST_FULL;
+  if (ratio >= 0.5) return badges.FILLING_FAST;
+  return badges.AVAILABLE;
 }

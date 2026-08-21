@@ -1,4 +1,4 @@
-export type UserRole = "student" | "lister" | "admin";
+export type UserRole = "STUDENT" | "LISTER" | "ADMIN";
 
 export interface User {
   id: string;
@@ -25,7 +25,7 @@ export interface Property {
   id: string;
   listerId: string;
   name: string;
-  type: "PG" | "Hostel" | "Flat" | "Shared Flat";
+  type: "PG" | "HOSTEL" | "FLAT" | "SHARED_ACCOMMODATION";
   address: string;
   locality: string;
   description: string;
@@ -44,8 +44,9 @@ export interface Property {
   capacity: number;
   occupied: number;
   available: number;
+  availabilityStatus: "AVAILABLE" | "FILLING_FAST" | "ALMOST_FULL" | "FULL";
   rating: number;
-  verificationStatus: "DRAFT" | "UNDER_REVIEW" | "VERIFIED" | "REJECTED" | "SUBMITTED";
+  verificationStatus: "DRAFT" | "SUBMITTED_FOR_VERIFICATION" | "UNDER_REVIEW" | "VERIFIED" | "REJECTED";
   verificationHash?: string;
   verificationTimestamp?: string;
   blockchainTx?: string;
@@ -89,4 +90,19 @@ export interface MatchResult {
   facilitiesScore: number;
   lifestyleScore: number;
   explanation: string;
+  compareItem?: {
+    id: string;
+    name: string;
+    matchScore: number;
+    rent: number;
+    effectiveMonthlyCost: number;
+    deposit: number;
+    distanceKm: number;
+    commuteTimeMin: number;
+    rating: number;
+    available: number;
+    availabilityStatus: string;
+    verificationStatus: string;
+    keyFacilities: string[];
+  };
 }

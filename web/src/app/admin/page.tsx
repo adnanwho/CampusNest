@@ -1,18 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Check, X, Clock, Shield, ExternalLink } from "lucide-react";
-import { demoProperties, demoVerificationRecords } from "@/lib/data";
+import { Check, X, Shield } from "lucide-react";
+import { demoProperties } from "@/lib/data";
 import { generateMockTxHash } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminPage() {
   const [properties, setProperties] = useState(demoProperties);
-  const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const pendingProperties = properties.filter(
-    (p) => p.verificationStatus === "UNDER_REVIEW" || p.verificationStatus === "SUBMITTED"
+    (p) => p.verificationStatus === "UNDER_REVIEW" || p.verificationStatus === "SUBMITTED_FOR_VERIFICATION"
   );
 
   const handleApprove = (propertyId: string) => {
@@ -31,7 +30,6 @@ export default function AdminPage() {
     );
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
-    setSelectedProperty(null);
   };
 
   const handleReject = (propertyId: string) => {
@@ -42,7 +40,6 @@ export default function AdminPage() {
           : p
       )
     );
-    setSelectedProperty(null);
   };
 
   return (
