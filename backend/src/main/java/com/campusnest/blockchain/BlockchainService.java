@@ -47,6 +47,10 @@ public class BlockchainService {
         this.explorerUrl = explorerUrl;
     }
 
+    public boolean isConfigured() {
+        return enabled && privateKey != null && !privateKey.isBlank();
+    }
+
     public String computeRecordHash(Long propertyId, Long listerId, String timestamp, String status) {
         return computeRecordHash(propertyId, listerId, timestamp, status, null, null, null);
     }

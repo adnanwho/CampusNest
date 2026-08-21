@@ -122,6 +122,32 @@ class SecurityIntegrationTest {
       assertTrue(passwordEncoder.matches("plain-password", user.getPasswordHash()));
         }
 
+        @Test
+        void studentRegistrationFollowedByRecommendationsAndPropertiesSearch() throws Exception {
+            String email = "fresh-student-" + System.currentTimeMillis() + "@campusnest.test";
+            MvcResult regResult = mockMvc.perform(post("/auth/register")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {
+                                      "name": "Fresh Student",
+                                      "email": "%s",
+                                      "password": "student123",
+                                      "role": "STUDENT"
+                                    }
+                                    """.formatted(email)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            String response = regResult.getResponse().getContentAsString();
+            String token = response.replaceFirst(".*\\\"token\\\":\\\"([^\\\"]+)\\\".*", "$1");
+
+            mockMvc.perform(get("/recommendations").header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk());
+
+            mockMvc.perform(get("/properties").header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk());
+        }
+
         private String loginToken(String email, String password) throws Exception {
       MvcResult result = mockMvc.perform(post("/auth/login")
           .contentType(MediaType.APPLICATION_JSON)

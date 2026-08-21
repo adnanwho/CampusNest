@@ -27,7 +27,7 @@ import { getEffectiveMonthlyCost, getAvailabilityBadge } from "@/lib/scoring";
 
 export default function HomePage() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredUser());
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [featuredProperties, setFeaturedProperties] = useState<Property[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
 

@@ -37,6 +37,10 @@ public class AdminVerificationService {
         )).stream().map(propertyMapper::toSummary).toList();
     }
 
+    public List<PropertySummaryDto> all() {
+        return propertyRepository.findAll().stream().map(propertyMapper::toSummary).toList();
+    }
+
     @Transactional
     public PropertySummaryDto markUnderReview(Long id) {
         Property property = getPendingProperty(id);

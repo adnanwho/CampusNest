@@ -1,4 +1,19 @@
-import type { CompareItem, Property, StudentProfile, User, UserRole, VerificationInfo } from "./types";
+import type { 
+    CompareItem, 
+    Property, 
+    StudentProfile, 
+    User, 
+    UserRole, 
+    VerificationInfo,
+    AdminDashboardData,
+    AdminUserData,
+    AdminPropertyData,
+    AdminPrivacyData,
+    AdminConsentData,
+    AdminAuditLogData,
+    AdminReportsData,
+    AdminSystemHealthData
+} from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
 
@@ -361,4 +376,41 @@ export async function rejectVerification(id: string, reason: string): Promise<Pr
         body: JSON.stringify({ reason }),
     });
     return toProperty(response);
+}
+
+export async function getAllVerifications(): Promise<Property[]> {
+    const response = await request<BackendPropertySummary[]>("/admin/verifications/all");
+    return response.map(toProperty);
+}
+
+export async function getAdminDashboard(): Promise<AdminDashboardData> {
+    return request<AdminDashboardData>("/admin/dashboard");
+}
+
+export async function getAdminUsers(): Promise<AdminUserData[]> {
+    return request<AdminUserData[]>("/admin/users");
+}
+
+export async function getAdminProperties(): Promise<AdminPropertyData[]> {
+    return request<AdminPropertyData[]>("/admin/properties");
+}
+
+export async function getAdminPrivacy(): Promise<AdminPrivacyData> {
+    return request<AdminPrivacyData>("/admin/privacy");
+}
+
+export async function getAdminConsents(): Promise<AdminConsentData[]> {
+    return request<AdminConsentData[]>("/admin/consent");
+}
+
+export async function getAdminAuditLogs(): Promise<AdminAuditLogData[]> {
+    return request<AdminAuditLogData[]>("/admin/audit-logs");
+}
+
+export async function getAdminReports(): Promise<AdminReportsData> {
+    return request<AdminReportsData>("/admin/reports");
+}
+
+export async function getAdminSystemHealth(): Promise<AdminSystemHealthData> {
+    return request<AdminSystemHealthData>("/admin/system-health");
 }

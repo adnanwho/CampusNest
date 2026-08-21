@@ -22,6 +22,11 @@ public class AdminVerificationController {
         return verificationService.pending();
     }
 
+    @GetMapping("/all")
+    public List<PropertySummaryDto> all() {
+        return verificationService.all();
+    }
+
     @PostMapping("/{id}/review")
     public PropertySummaryDto markUnderReview(@PathVariable Long id) {
         return verificationService.markUnderReview(id);

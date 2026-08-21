@@ -147,3 +147,122 @@ export interface CompareItem {
   verificationStatus: VerificationStatus | string;
   keyFacilities: string[];
 }
+
+export interface AdminDashboardData {
+  totalStudents: number;
+  totalListers: number;
+  totalAdmins: number;
+  totalProperties: number;
+  verifiedProperties: number;
+  pendingVerifications: number;
+  underReviewVerifications: number;
+  rejectedProperties: number;
+  totalCapacity: number;
+  totalOccupied: number;
+  totalAvailable: number;
+  recentActivities: AdminAuditLogData[];
+}
+
+export interface AdminUserData {
+  id: number;
+  name: string;
+  maskedEmail: string;
+  role: UserRole;
+  createdAt: string;
+  details?: Record<string, unknown>;
+}
+
+export interface AdminPropertyData {
+  id: number;
+  name: string;
+  type: string;
+  address: string;
+  locality: string;
+  rent: number;
+  deposit: number;
+  effectiveMonthlyCost: number;
+  capacity: number;
+  occupied: number;
+  available: number;
+  rating: number;
+  verificationStatus: VerificationStatus | string;
+  verificationHash?: string;
+  verificationTimestamp?: string;
+  blockchainTx?: string;
+  rejectionReason?: string;
+  listerId: number;
+  listerName: string;
+  facilities: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminAuditLogData {
+  id: string;
+  actor: string;
+  action: string;
+  target: string;
+  timestamp: string;
+  result: string;
+  details: string;
+}
+
+export interface AdminConsentData {
+  id: string;
+  userId: number;
+  userName: string;
+  userRole: string;
+  dataCategory: string;
+  purpose: string;
+  status: string;
+  timestamp: string;
+}
+
+export interface PrivacyCategory {
+  categoryName: string;
+  classification: string;
+  description: string;
+  sampleFields: string[];
+  protectionMethod: string;
+}
+
+export interface AdminPrivacyData {
+  categories: PrivacyCategory[];
+  activeConsents: AdminConsentData[];
+  users: AdminUserData[];
+}
+
+export interface AdminReportsData {
+  totalProperties: number;
+  verificationRatePercent: number;
+  averageRent: number;
+  averageEffectiveCost: number;
+  occupancyRatePercent: number;
+  localityBreakdown: {
+    locality: string;
+    propertyCount: number;
+    averageRent: number;
+    averageEffectiveCost: number;
+  }[];
+  typeBreakdown: {
+    type: string;
+    count: number;
+  }[];
+  statusBreakdown: {
+    status: string;
+    count: number;
+  }[];
+}
+
+export interface AdminSystemHealthData {
+  backendStatus: string;
+  databaseStatus: string;
+  authenticationStatus: string;
+  blockchainStatus: string;
+  environment: string;
+  databaseLatencyMs: number;
+  timestamp: string;
+  totalUsers: number;
+  totalProperties: number;
+  totalVerificationRecords: number;
+}

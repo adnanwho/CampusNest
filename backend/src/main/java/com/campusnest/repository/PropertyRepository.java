@@ -18,7 +18,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     @Query("""
         SELECT p FROM Property p
         WHERE p.verificationStatus = :status
-        AND (:locality IS NULL OR LOWER(p.locality) LIKE LOWER(CONCAT('%', :locality, '%')))
+        AND (CAST(:locality AS String) IS NULL OR LOWER(p.locality) LIKE LOWER(CONCAT('%', CAST(:locality AS String), '%')))
         AND (:type IS NULL OR p.type = :type)
         AND (:minBudget IS NULL OR (p.rent + p.foodCost + p.electricityCost + p.wifiCost + p.maintenanceCost) >= :minBudget)
         AND (:maxBudget IS NULL OR (p.rent + p.foodCost + p.electricityCost + p.wifiCost + p.maintenanceCost) <= :maxBudget)

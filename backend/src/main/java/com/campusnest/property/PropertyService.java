@@ -35,11 +35,10 @@ public class PropertyService {
 
     public List<PropertySummaryDto> search(UserPrincipal principal, PropertySearchParams params) {
         StudentProfile profile = profileFor(principal);
-        String locality = params.getLocality() != null ? params.getLocality() : profile.getLocalityPref();
-        PropertyType type = params.getType() != null ? PropertyType.valueOf(params.getType().name())
-                : profile.getAccommodationType() != null ? PropertyType.valueOf(profile.getAccommodationType().name()) : null;
-        Integer minBudget = params.getBudgetMin() != null ? params.getBudgetMin() : profile.getBudgetMin();
-        Integer maxBudget = params.getBudgetMax() != null ? params.getBudgetMax() : profile.getBudgetMax();
+        String locality = params != null ? params.getLocality() : null;
+        PropertyType type = params != null && params.getType() != null ? PropertyType.valueOf(params.getType().name()) : null;
+        Integer minBudget = params != null ? params.getBudgetMin() : null;
+        Integer maxBudget = params != null ? params.getBudgetMax() : null;
 
         return propertyRepository.searchVerifiedAvailable(VerificationStatus.VERIFIED, blankToNull(locality), type, minBudget, maxBudget)
                 .stream()
@@ -49,8 +48,12 @@ public class PropertyService {
     }
 
     public List<PropertySummaryDto> recommendations(UserPrincipal principal) {
-        PropertySearchParams params = new PropertySearchParams();
-        return search(principal, params);
+        StudentProfile profile = profileFor(principal);
+        return propertyRepository.searchVerifiedAvailable(VerificationStatus.VERIFIED, null, null, null, null)
+                .stream()
+                .map(property -> toScoredSummary(property, profile))
+                .sorted(Comparator.comparing(PropertySummaryDto::getMatchScore, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
     }
 
     public PropertyDetailDto detail(Long id) {

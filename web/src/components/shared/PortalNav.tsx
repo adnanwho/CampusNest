@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
@@ -34,8 +34,21 @@ export default function PortalNav({ role, userName }: PortalNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const storedUser = getStoredUser();
-  const displayName = storedUser?.name ?? userName ?? "CampusNest User";
+  const [displayName, setDisplayName] = useState(userName ?? "CampusNest User");
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      const storedUser = getStoredUser();
+      if (storedUser?.name) {
+        setDisplayName(storedUser.name);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [userName]);
 
   const studentNav: NavItem[] = [
     { label: "Discover", href: "/student", icon: <Compass className="w-4 h-4" /> },
@@ -50,7 +63,7 @@ export default function PortalNav({ role, userName }: PortalNavProps) {
   ];
 
   const adminNav: NavItem[] = [
-    { label: "Verification Queue", href: "/admin", icon: <ShieldCheck className="w-4 h-4" /> },
+    { label: "Admin Console", href: "/admin", icon: <ShieldCheck className="w-4 h-4" /> },
   ];
 
   const navItems = role === "STUDENT" ? studentNav : role === "LISTER" ? listerNav : adminNav;
@@ -58,7 +71,7 @@ export default function PortalNav({ role, userName }: PortalNavProps) {
   const rolePills = {
     STUDENT: "bg-[#EBF8F0] text-[#2A8C50] border-[#39B86B]/30",
     LISTER: "bg-[#FFF8E7] text-[#D49B24] border-[#FFC857]/40",
-    ADMIN: "bg-slate-100 text-slate-800 border-slate-300",
+    ADMIN: "bg-[#17202A] text-white border-[#17202A]",
   };
 
   const handleLogout = () => {

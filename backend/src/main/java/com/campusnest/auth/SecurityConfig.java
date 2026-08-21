@@ -70,10 +70,16 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
-                    .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                    .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                    .accessDeniedHandler((request, response, accessDeniedException) -> {
+                        response.setStatus(HttpStatus.FORBIDDEN.value());
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"Forbidden: Insufficient privileges for this resource\"}");
+                    }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/verification/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/listings/**").hasRole("LISTER")
                         .requestMatchers("/students/**", "/recommendations", "/properties/**").hasRole("STUDENT")
