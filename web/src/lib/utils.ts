@@ -29,12 +29,3 @@ export async function generateSHA256(text: string): Promise<string> {
     return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
   }) as Promise<string>;
 }
-
-export function generateMockTxHash(): string {
-  const chars = "0123456789abcdef";
-  let hash = "0x";
-  for (let i = 0; i < 64; i++) {
-    hash += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return hash;
-}

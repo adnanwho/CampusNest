@@ -1,5 +1,15 @@
 "use client";
 
+<<<<<<< HEAD
+import { useEffect, useState } from "react";
+import { Check, X, Shield } from "lucide-react";
+import { approveVerification, getPendingVerifications, rejectVerification } from "@/lib/api";
+import type { Property } from "@/lib/types";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function AdminPage() {
+  const [properties, setProperties] = useState<Property[]>([]);
+=======
 import { useState } from "react";
 import { Check, X, Shield } from "lucide-react";
 import { demoProperties } from "@/lib/data";
@@ -8,30 +18,29 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminPage() {
   const [properties, setProperties] = useState(demoProperties);
+>>>>>>> origin/main
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    getPendingVerifications().then(setProperties).catch(() => setProperties([]));
+  }, []);
 
   const pendingProperties = properties.filter(
     (p) => p.verificationStatus === "UNDER_REVIEW" || p.verificationStatus === "SUBMITTED_FOR_VERIFICATION"
   );
 
-  const handleApprove = (propertyId: string) => {
-    setProperties((prev) =>
-      prev.map((p) =>
-        p.id === propertyId
-          ? {
-              ...p,
-              verificationStatus: "VERIFIED" as const,
-              verificationHash: generateMockTxHash(),
-              verificationTimestamp: new Date().toISOString(),
-              blockchainTx: generateMockTxHash(),
-            }
-          : p
-      )
-    );
+  const handleApprove = async (propertyId: string) => {
+    await approveVerification(propertyId);
+    setProperties((prev) => prev.filter((p) => p.id !== propertyId));
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
 
+<<<<<<< HEAD
+  const handleReject = async (propertyId: string) => {
+    await rejectVerification(propertyId, "Does not meet verification criteria.");
+    setProperties((prev) => prev.filter((p) => p.id !== propertyId));
+=======
   const handleReject = (propertyId: string) => {
     setProperties((prev) =>
       prev.map((p) =>
@@ -40,6 +49,7 @@ export default function AdminPage() {
           : p
       )
     );
+>>>>>>> origin/main
   };
 
   return (
@@ -83,13 +93,12 @@ export default function AdminPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="font-semibold text-slate-900">{property.name}</h3>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        property.verificationStatus === "VERIFIED"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : property.verificationStatus === "UNDER_REVIEW"
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${property.verificationStatus === "VERIFIED"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : property.verificationStatus === "UNDER_REVIEW"
                           ? "bg-yellow-50 text-yellow-700"
                           : "bg-blue-50 text-blue-700"
-                      }`}>
+                        }`}>
                         {property.verificationStatus.replace("_", " ")}
                       </span>
                     </div>
@@ -102,14 +111,14 @@ export default function AdminPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleApprove(property.id)}
+                      onClick={() => void handleApprove(property.id)}
                       className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
                       title="Approve"
                     >
                       <Check className="w-5 h-5" />
                     </button>
                     <button
-                      onClick={() => handleReject(property.id)}
+                      onClick={() => void handleReject(property.id)}
                       className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                       title="Reject"
                     >
@@ -125,15 +134,15 @@ export default function AdminPage() {
 
       <AnimatePresence>
         {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 right-6 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 z-50"
-          >
-            <Check className="w-5 h-5" />
-            Property verified and blockchain record created!
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-6 right-6 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 z-50"
+            >
+              <Check className="w-5 h-5" />
+              Property verified successfully!
+            </motion.div>
         )}
       </AnimatePresence>
     </div>

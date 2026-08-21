@@ -1,11 +1,9 @@
 package com.campusnest.config;
 
-import com.campusnest.blockchain.BlockchainService;
-import com.campusnest.common.AvailabilityService;
-import com.campusnest.common.TagUtils;
-import com.campusnest.model.*;
-import com.campusnest.repository.*;
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -13,9 +11,26 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
+import com.campusnest.blockchain.BlockchainService;
+import com.campusnest.common.AvailabilityService;
+import com.campusnest.model.AccommodationType;
+import com.campusnest.model.ListerProfile;
+import com.campusnest.model.Property;
+import com.campusnest.model.PropertyType;
+import com.campusnest.model.Review;
+import com.campusnest.model.StudentProfile;
+import com.campusnest.model.User;
+import com.campusnest.model.UserRole;
+import com.campusnest.model.VerificationRecord;
+import com.campusnest.model.VerificationStatus;
+import com.campusnest.repository.ListerProfileRepository;
+import com.campusnest.repository.PropertyRepository;
+import com.campusnest.repository.ReviewRepository;
+import com.campusnest.repository.StudentProfileRepository;
+import com.campusnest.repository.UserRepository;
+import com.campusnest.repository.VerificationRecordRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -180,7 +195,13 @@ public class DemoDataSeeder implements ApplicationRunner {
 
         if (property.getVerificationStatus() == VerificationStatus.VERIFIED) {
             Instant timestamp = Instant.now();
+<<<<<<< HEAD
+            String hash = blockchainService.computeRecordHash(
+                    property.getId(), property.getListerId(), timestamp.toString(), VerificationStatus.VERIFIED.name(),
+                    property.getAddress(), property.getCapacity(), null);
+=======
             String hash = blockchainService.computeCanonicalHash(property, String.valueOf(adminUserId), VerificationStatus.VERIFIED, timestamp);
+>>>>>>> origin/main
             property.setVerificationHash(hash);
             property.setVerificationTimestamp(timestamp);
             property.setBlockchainTx("mock-seed-" + Math.abs(property.getName().hashCode()));
