@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("student");
+  const [role, setRole] = useState<UserRole>("STUDENT");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +29,7 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      const user = await register(name, email, password, role.toUpperCase() as "STUDENT" | "LISTER" | "ADMIN");
+      const user = await register(name, email, password, role);
       router.push(`/${user.role}`);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Registration failed. Please try again.");
@@ -95,17 +95,17 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">I want to</label>
               <div className="grid grid-cols-2 gap-3">
-                {([
-                  { value: "student", label: "Find Accommodation" },
-                  { value: "lister", label: "List Property" },
-                ] as { value: UserRole; label: string }[]).map((option) => (
+                {[
+                  { value: "STUDENT" as UserRole, label: "Find Accommodation" },
+                  { value: "LISTER" as UserRole, label: "List Property" },
+                ].map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => setRole(option.value)}
                     className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                       role === option.value
-                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >

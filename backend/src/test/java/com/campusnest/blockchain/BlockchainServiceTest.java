@@ -1,12 +1,17 @@
 package com.campusnest.blockchain;
 
-<<<<<<< HEAD
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.campusnest.model.Property;
+import com.campusnest.model.VerificationStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
 
 class BlockchainServiceTest {
 
@@ -66,21 +71,6 @@ class BlockchainServiceTest {
         assertTrue(result.transactionHash().startsWith("mock-tx-"));
         assertEquals("Polygon Amoy", result.networkName());
     }
-}
-=======
-import com.campusnest.model.Property;
-import com.campusnest.model.PropertyType;
-import com.campusnest.model.VerificationStatus;
-import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-class BlockchainServiceTest {
-
-    private final BlockchainService service = new BlockchainService(
-            false, null, null, null, null, null);
 
     @Test
     void canonicalHashIsDeterministic() {
@@ -123,4 +113,3 @@ class BlockchainServiceTest {
         assertThat(verifiedHash).isNotEqualTo(rejectedHash);
     }
 }
->>>>>>> origin/main

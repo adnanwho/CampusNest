@@ -3,12 +3,21 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import StudentLayout from "@/app/student/layout";
 import { getProperty } from "@/lib/api";
 import type { Property } from "@/lib/types";
-import { getAvailabilityBadge } from "@/lib/scoring";
+import { getAvailabilityBadge, getEffectiveMonthlyCost } from "@/lib/scoring";
 import { formatCurrency } from "@/lib/utils";
-import { MapPin, Star, ShieldCheck, ExternalLink } from "lucide-react";
+import { 
+  MapPin, 
+  Star, 
+  ShieldCheck, 
+  ExternalLink, 
+  ArrowLeft, 
+  Sparkles, 
+  CheckCircle2, 
+  Building2,
+  Columns
+} from "lucide-react";
 
 export default function PropertyDetailPage() {
   const params = useParams<{ id: string }>();
@@ -24,208 +33,223 @@ export default function PropertyDetailPage() {
 
   if (error) {
     return (
-      <StudentLayout>
-        <div className="max-w-4xl mx-auto text-center py-16">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Link href="/student" className="btn-primary">Back to Discover</Link>
-        </div>
-      </StudentLayout>
+      <div className="max-w-4xl mx-auto text-center py-16">
+        <p className="text-sm font-bold text-red-600 mb-4">{error}</p>
+        <Link href="/student" className="btn-primary text-xs">Back to Discover</Link>
+      </div>
     );
   }
 
   if (!property) {
     return (
-      <StudentLayout>
-        <div className="max-w-4xl mx-auto text-center py-16">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-500">Loading property...</p>
-        </div>
-      </StudentLayout>
+      <div className="max-w-4xl mx-auto text-center py-16">
+        <div className="w-10 h-10 border-3 border-[#39B86B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-xs font-bold text-[#596573]">Loading accommodation details...</p>
+      </div>
     );
   }
 
   const badge = getAvailabilityBadge(property);
   const score = property.matchScore ?? 0;
+  const effectiveCost = getEffectiveMonthlyCost(property);
+  const isVerified = property.verificationStatus === "VERIFIED";
 
   return (
-    <StudentLayout>
-      <div className="max-w-4xl mx-auto">
-        <div className="glass-card rounded-2xl overflow-hidden">
-          <div className="p-8">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${property.verificationStatus === "VERIFIED"
-                    ? "bg-emerald-50 text-emerald-700"
-                    : property.verificationStatus === "UNDER_REVIEW"
-                      ? "bg-yellow-50 text-yellow-700"
-                      : "bg-slate-100 text-slate-600"
-                    }`}>
-                    {property.verificationStatus.replace("_", " ")}
-                  </span>
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700 capitalize">
-                    {property.type}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${badge.color}`}>
-                    {badge.label}
-                  </span>
-                </div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">{property.name}</h1>
-                <div className="flex items-center gap-2 text-slate-600">
-                  <MapPin className="w-4 h-4" />
-                  <span>{property.address}</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-indigo-600">{score}%</div>
-                <div className="text-sm text-slate-500">match score</div>
-              </div>
-            </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Top back button */}
+      <div>
+        <Link href="/student" className="inline-flex items-center gap-1 text-xs font-bold text-[#596573] hover:text-[#17202A] transition-colors">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Back to Discover Stays
+        </Link>
+      </div>
 
-            <p className="text-slate-700 mb-6">{property.description}</p>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-slate-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-slate-900">₹{property.rent.toLocaleString()}</div>
-                <div className="text-xs text-slate-500 mt-1">Base Rent</div>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-slate-900">
-                  ₹{property.effectiveMonthlyCost.toLocaleString()}
-                </div>
-                <div className="text-xs text-slate-500 mt-1">Effective Cost</div>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-slate-900">{property.distanceKm}km</div>
-                <div className="text-xs text-slate-500 mt-1">From Campus</div>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-slate-900">{property.commuteTimeMin}min</div>
-                <div className="text-xs text-slate-500 mt-1">Commute</div>
-              </div>
-            </div>
-
-            {property.aiExplanation && (
-              <div className="mb-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                <div className="text-sm font-semibold text-indigo-800 mb-1">Why this match?</div>
-                <p className="text-sm text-indigo-700">{property.aiExplanation}</p>
-              </div>
-            )}
-
-            <div className="mb-6">
-              <h3 className="font-semibold text-slate-900 mb-3">Cost Breakdown</h3>
-              <div className="space-y-2">
-                {[
-                  { label: "Rent", value: property.rent },
-                  { label: "Food", value: property.foodCost },
-                  { label: "Electricity", value: property.electricityCost },
-                  { label: "WiFi", value: property.wifiCost },
-                  { label: "Maintenance", value: property.maintenanceCost },
-                ].map((item) => (
-                  <div key={item.label} className="flex justify-between text-sm">
-                    <span className="text-slate-600">{item.label}</span>
-                    <span className="font-medium text-slate-900">{formatCurrency(item.value)}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between text-sm font-bold border-t border-slate-200 pt-2 mt-2">
-                  <span className="text-slate-900">Total Effective</span>
-                  <span className="text-indigo-600">{formatCurrency(property.effectiveMonthlyCost)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h3 className="font-semibold text-slate-900 mb-3">Availability</h3>
-              <div className="flex items-center gap-4">
-                <div className="flex-1 bg-slate-200 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-indigo-600 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${(property.occupied / property.capacity) * 100}%` }}
-                  />
-                </div>
-                <span className="text-sm font-medium text-slate-700">
-                  {property.available} / {property.capacity} beds available
+      <div className="campus-card bg-white border border-[#E5E0D8] rounded-3xl overflow-hidden shadow-sm">
+        {/* Header Strip */}
+        <div className="p-6 md:p-8 bg-[#FAF8F5] border-b border-[#E5E0D8]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-[#E5E0D8] text-[#596573] uppercase tracking-wider">
+                  {property.type}
                 </span>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h3 className="font-semibold text-slate-900 mb-3">Facilities</h3>
-              <div className="flex flex-wrap gap-2">
-                {property.facilities.map((facility) => (
-                  <span key={facility} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium">
-                    {facility}
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${badge.color}`}>
+                  {badge.label}
+                </span>
+                {isVerified && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EBF8F0] text-[#2A8C50] border border-[#39B86B]/30">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#39B86B]" />
+                    CampusNest Verified
                   </span>
-                ))}
+                )}
               </div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-[#17202A] tracking-tight mb-1">
+                {property.name}
+              </h1>
+              <p className="text-xs text-[#596573] flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-[#8A96A3]" />
+                {property.address}
+              </p>
             </div>
 
-            {property.verification && (
-              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                  <h3 className="font-semibold text-emerald-800">Blockchain Verification Record</h3>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="text-emerald-700 font-medium">Network: </span>
-                    <span className="text-emerald-800">{property.verification.networkName}</span>
-                  </div>
-                  <div>
-                    <span className="text-emerald-700 font-medium">Record Hash: </span>
-                    <span className="text-emerald-800 font-mono break-all">{property.verification.recordHash}</span>
-                  </div>
-                  <div>
-                    <span className="text-emerald-700 font-medium">Timestamp: </span>
-                    <span className="text-emerald-800">{new Date(property.verification.timestamp).toLocaleString()}</span>
-                  </div>
-                  {property.verification.explorerUrl && (
-                    <a
-                      href={property.verification.explorerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-emerald-700 font-medium hover:underline"
-                    >
-                      View on Explorer
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
+            <div className="bg-white p-4 rounded-2xl border border-[#E5E0D8] text-right flex-shrink-0">
+              <div className="text-xs font-bold text-[#8A96A3] uppercase tracking-wider">CampusNest Match</div>
+              <div className="text-2xl font-black text-[#2A8C50]">{score}%</div>
+              <div className="text-[10px] text-[#596573]">5-Factor Profile Fit</div>
+            </div>
+          </div>
+        </div>
 
-            {property.reviews && property.reviews.length > 0 && (
-              <div className="mb-6">
-                <h3 className="font-semibold text-slate-900 mb-3">Reviews</h3>
-                <div className="space-y-3">
-                  {property.reviews.map((review) => (
-                    <div key={review.id} className="bg-slate-50 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                        <span className="font-semibold text-slate-900">{review.rating}</span>
-                        <span className="text-slate-500 text-sm">/ 5.0</span>
-                      </div>
-                      <p className="text-sm text-slate-700">{review.reviewText}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Content Body */}
+        <div className="p-6 md:p-8 space-y-6">
+          <p className="text-sm text-[#596573] leading-relaxed">{property.description}</p>
 
-            <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                <span className="font-bold text-slate-900">{property.rating}</span>
-                <span className="text-slate-500">/ 5.0</span>
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-[#F7F5EF] rounded-2xl p-4 text-center border border-[#E5E0D8]/60">
+              <div className="text-xl font-black text-[#17202A]">{formatCurrency(property.rent)}</div>
+              <div className="text-[10px] font-bold text-[#8A96A3] uppercase tracking-wider mt-0.5">Base Rent</div>
+            </div>
+            <div className="bg-[#EBF8F0] rounded-2xl p-4 text-center border border-[#39B86B]/30">
+              <div className="text-xl font-black text-[#2A8C50]">{formatCurrency(effectiveCost)}</div>
+              <div className="text-[10px] font-bold text-[#2A8C50] uppercase tracking-wider mt-0.5">Effective Total /mo</div>
+            </div>
+            <div className="bg-[#F7F5EF] rounded-2xl p-4 text-center border border-[#E5E0D8]/60">
+              <div className="text-xl font-black text-[#17202A]">{property.distanceKm} km</div>
+              <div className="text-[10px] font-bold text-[#8A96A3] uppercase tracking-wider mt-0.5">To Campus</div>
+            </div>
+            <div className="bg-[#F7F5EF] rounded-2xl p-4 text-center border border-[#E5E0D8]/60">
+              <div className="text-xl font-black text-[#17202A]">{property.commuteTimeMin} min</div>
+              <div className="text-[10px] font-bold text-[#8A96A3] uppercase tracking-wider mt-0.5">Commute ({property.commuteMode})</div>
+            </div>
+          </div>
+
+          {/* Match Explanation */}
+          {property.aiExplanation && (
+            <div className="p-4 bg-[#F7F5EF] border border-[#E5E0D8] rounded-2xl">
+              <div className="text-xs font-bold text-[#17202A] flex items-center gap-1.5 mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#39B86B]" />
+                CampusNest Matching Rationale
               </div>
-              <div className="flex gap-3">
-                <Link href="/student" className="btn-secondary">Back to Discover</Link>
-                <Link href={`/student/compare?add=${property.id}`} className="btn-primary">Compare</Link>
+              <p className="text-xs text-[#596573] leading-relaxed">{property.aiExplanation}</p>
+            </div>
+          )}
+
+          {/* Cost Breakdown */}
+          <div className="bg-white rounded-2xl p-5 border border-[#E5E0D8]">
+            <h3 className="text-xs font-bold text-[#596573] uppercase tracking-wider mb-3">
+              Transparent Monthly Cost Breakdown
+            </h3>
+            <div className="space-y-2 text-xs">
+              {[
+                { label: "Base Monthly Rent", value: property.rent },
+                { label: "Food / Meal Plan", value: property.foodCost },
+                { label: "Electricity (Estimated)", value: property.electricityCost },
+                { label: "High-speed Wi-Fi", value: property.wifiCost },
+                { label: "Maintenance & Cleaning", value: property.maintenanceCost },
+              ].map((item) => (
+                <div key={item.label} className="flex justify-between text-[#596573]">
+                  <span>{item.label}</span>
+                  <span className="font-semibold text-[#17202A]">{formatCurrency(item.value)}</span>
+                </div>
+              ))}
+              <div className="flex justify-between text-sm font-extrabold border-t border-[#E5E0D8] pt-2.5 mt-2 text-[#17202A]">
+                <span>Total Effective Monthly Outlay</span>
+                <span className="text-[#39B86B] text-base">{formatCurrency(effectiveCost)}</span>
               </div>
+            </div>
+          </div>
+
+          {/* Availability */}
+          <div className="bg-white rounded-2xl p-5 border border-[#E5E0D8]">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-bold text-[#596573] uppercase tracking-wider">
+                Live Occupancy & Bed Vacancy
+              </h3>
+              <span className="text-xs font-bold text-[#17202A]">
+                {property.available} of {property.capacity} beds available
+              </span>
+            </div>
+            <div className="w-full bg-[#E5E0D8] rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-[#39B86B] h-full rounded-full transition-all duration-500"
+                style={{ width: `${(property.occupied / Math.max(1, property.capacity)) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Facilities */}
+          <div>
+            <h3 className="text-xs font-bold text-[#596573] uppercase tracking-wider mb-3">
+              Included Facilities
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {property.facilities.map((facility) => (
+                <span
+                  key={facility}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7F5EF] text-[#17202A] text-xs font-semibold border border-[#E5E0D8]"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#39B86B]" />
+                  {facility}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Verification Audit Certificate */}
+          {property.verification && (
+            <div className="p-5 bg-[#EBF8F0] border border-[#39B86B]/30 rounded-2xl space-y-2 text-xs">
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldCheck className="w-4 h-4 text-[#39B86B]" />
+                <h3 className="font-extrabold text-[#2A8C50]">Audit Certificate Record</h3>
+              </div>
+              <div className="space-y-1.5 text-[#2A8C50]">
+                <div>
+                  <span className="font-semibold">Network: </span>
+                  <span>{property.verification.networkName}</span>
+                </div>
+                <div>
+                  <span className="font-semibold">SHA-256 Record Hash: </span>
+                  <span className="font-mono text-[11px] break-all bg-white/70 px-2 py-0.5 rounded border border-[#39B86B]/20">{property.verification.recordHash}</span>
+                </div>
+                <div>
+                  <span className="font-semibold">Verified Timestamp: </span>
+                  <span>{new Date(property.verification.timestamp).toLocaleString()}</span>
+                </div>
+                {property.verification.explorerUrl && (
+                  <a
+                    href={property.verification.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[#2A8C50] font-bold hover:underline pt-1"
+                  >
+                    View on Blockchain Explorer
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Bottom Actions */}
+          <div className="flex items-center justify-between pt-6 border-t border-[#E5E0D8]">
+            <div className="flex items-center gap-1.5">
+              <Star className="w-4 h-4 text-[#FFC857] fill-[#FFC857]" />
+              <span className="font-extrabold text-sm text-[#17202A]">{property.rating}</span>
+              <span className="text-xs text-[#8A96A3]">/ 5.0</span>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/student" className="btn-secondary text-xs py-2 px-3.5 font-bold">
+                Back to Discover
+              </Link>
+              <Link href={`/student/compare?add=${property.id}`} className="btn-primary text-xs py-2 px-4 font-bold flex items-center gap-1.5">
+                <Columns className="w-3.5 h-3.5" />
+                Add to Compare
+              </Link>
             </div>
           </div>
         </div>
       </div>
-    </StudentLayout>
+    </div>
   );
 }

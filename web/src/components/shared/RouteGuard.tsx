@@ -21,7 +21,7 @@ export default function RouteGuard({ children, allowedRoles }: RouteGuardProps) 
       router.replace("/");
       return;
     }
-    if (!allowedRoles.includes(user.role)) {
+    if (!allowedRoles.some((r) => r.toUpperCase() === user.role.toUpperCase())) {
       logout();
       router.replace("/");
       return;

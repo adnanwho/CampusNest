@@ -46,7 +46,6 @@ public class BlockchainService {
     }
 
     public String computeRecordHash(Long propertyId, Long listerId, String timestamp, String status) {
-<<<<<<< HEAD
         return computeRecordHash(propertyId, listerId, timestamp, status, null, null, null);
     }
 
@@ -66,9 +65,7 @@ public class BlockchainService {
         if (adminId != null) {
             payload.append("|").append(adminId);
         }
-=======
-        String payload = propertyId + "|" + listerId + "|" + timestamp + "|" + status;
-        return sha256(payload);
+        return sha256(payload.toString());
     }
 
     public String computeCanonicalHash(Property property, String adminSignoff, VerificationStatus status, Instant timestamp) {
@@ -87,7 +84,6 @@ public class BlockchainService {
     }
 
     private String sha256(String payload) {
->>>>>>> origin/main
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(payload.toString().getBytes(StandardCharsets.UTF_8));
