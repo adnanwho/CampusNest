@@ -7,12 +7,7 @@ import {
   Columns, 
   ArrowLeft, 
   ShieldCheck, 
-  Star, 
-  Clock, 
-  MapPin, 
-  Sparkles, 
-  Building2,
-  CheckCircle2
+  Star
 } from "lucide-react";
 import { compareProperties, getRecommendations } from "@/lib/api";
 import type { CompareItem } from "@/lib/types";
@@ -26,6 +21,7 @@ function CompareContent() {
 
   useEffect(() => {
     const addId = searchParams.get("add");
+    let isMounted = true;
     (async () => {
       try {
         let ids: string[] = [];
@@ -41,17 +37,30 @@ function CompareContent() {
           ids = recommendations.slice(0, 3).map((p) => p.id);
         }
         if (ids.length < 2) {
-          setError("Select at least 2 properties to compare.");
+          if (isMounted) {
+            setError("Select at least 2 properties to compare.");
+            setLoading(false);
+          }
           return;
         }
         const results = await compareProperties(ids);
-        setItems(results);
+        if (isMounted) {
+          setItems(results);
+        }
       } catch (requestError) {
-        setError(requestError instanceof Error ? requestError.message : "Unable to load comparison");
+        if (isMounted) {
+          setError(requestError instanceof Error ? requestError.message : "Unable to load comparison");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     })();
+
+    return () => {
+      isMounted = false;
+    };
   }, [searchParams]);
 
   return (
@@ -228,7 +237,7 @@ function CompareContent() {
 
 export default function ComparePage() {
   return (
-    <Suspense fallback={<p className="text-slate-500">Loading comparison...</p>}>
+    <Suspense fallback={<p className="text-xs text-[#8A96A3]">Loading comparison...</p>}>
       <CompareContent />
     </Suspense>
   );

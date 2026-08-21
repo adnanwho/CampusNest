@@ -10,11 +10,10 @@ import {
   Dumbbell, 
   BookOpen, 
   Star, 
-  ChevronRight,
-  Sparkles,
-  Building,
-  Clock,
-  CheckCircle
+  Sparkles, 
+  CheckCircle,
+  Car,
+  Columns
 } from "lucide-react";
 import { MatchResult } from "@/lib/types";
 import { getAvailabilityBadge, getEffectiveMonthlyCost } from "@/lib/scoring";
@@ -22,7 +21,7 @@ import { cn, formatCurrency } from "@/lib/utils";
 
 interface PropertyCardProps {
   result: MatchResult;
-  rank: number;
+  rank?: number;
 }
 
 const facilityIcons: Record<string, React.ReactNode> = {
@@ -36,6 +35,7 @@ const facilityIcons: Record<string, React.ReactNode> = {
   "Gym": <Dumbbell className="w-3.5 h-3.5" />,
   "Study Room": <BookOpen className="w-3.5 h-3.5" />,
   "Power Backup": <Zap className="w-3.5 h-3.5" />,
+  "Parking": <Car className="w-3.5 h-3.5" />,
 };
 
 export default function PropertyCard({ result, rank }: PropertyCardProps) {
@@ -56,9 +56,11 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
       <div className="relative bg-[#FAF8F5] p-5 pb-4 border-b border-[#E5E0D8]">
         <div className="flex items-center justify-between gap-2 mb-2.5">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-extrabold px-2 py-0.5 rounded-md bg-[#17202A] text-white">
-              #{rank}
-            </span>
+            {rank != null && (
+              <span className="text-xs font-extrabold px-2 py-0.5 rounded-md bg-[#17202A] text-white">
+                #{rank}
+              </span>
+            )}
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white border border-[#E5E0D8] text-[#596573] uppercase tracking-wider">
               {property.type}
             </span>
@@ -77,31 +79,35 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
 
         <div className="flex items-center gap-1 text-[#596573] text-xs">
           <MapPin className="w-3.5 h-3.5 text-[#8A96A3] flex-shrink-0" />
-          <span className="truncate">{property.locality} · {property.distanceKm} km ({property.commuteTimeMin} min {property.commuteMode.toLowerCase()})</span>
+          <span className="truncate">{property.locality} · {property.distanceKm} km ({property.commuteTimeMin} min {property.commuteMode?.toLowerCase() ?? "commute"})</span>
         </div>
       </div>
 
       {/* Card Body */}
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         {/* Match score & explanation */}
-        <div className="rounded-xl p-3 bg-[#F7F5EF] border border-[#E5E0D8]/60">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-[#17202A] flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-[#39B86B]" />
-              CampusNest Match
-            </span>
-            <span className={cn("text-xs font-black px-2 py-0.5 rounded-full border", scoreBadgeColor)}>
-              {score}% Match
-            </span>
+        {score > 0 && (
+          <div className="rounded-xl p-3 bg-[#F7F5EF] border border-[#E5E0D8]/60">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-bold text-[#17202A] flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#39B86B]" />
+                Deterministic Match
+              </span>
+              <span className={cn("text-xs font-black px-2 py-0.5 rounded-full border", scoreBadgeColor)}>
+                {score}% Match
+              </span>
+            </div>
+            {explanation && (
+              <p className="text-xs text-[#596573] leading-relaxed line-clamp-2">
+                {explanation}
+              </p>
+            )}
           </div>
-          <p className="text-xs text-[#596573] leading-relaxed line-clamp-2">
-            {explanation}
-          </p>
-        </div>
+        )}
 
         {/* Facilities Chips */}
         <div className="flex flex-wrap gap-1.5">
-          {property.facilities.slice(0, 4).map((facility) => (
+          {property.facilities?.slice(0, 4).map((facility) => (
             <span
               key={facility}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100/80 text-[#596573] text-[11px] font-medium"
@@ -110,7 +116,7 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
               {facility}
             </span>
           ))}
-          {property.facilities.length > 4 && (
+          {property.facilities && property.facilities.length > 4 && (
             <span className="px-2 py-0.5 rounded-md bg-slate-100/80 text-[#8A96A3] text-[11px] font-medium">
               +{property.facilities.length - 4} more
             </span>
@@ -137,7 +143,7 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
           <div className="text-right">
             <div className="flex items-center gap-1 justify-end text-xs font-bold text-[#17202A] mb-0.5">
               <Star className="w-3.5 h-3.5 text-[#FFC857] fill-[#FFC857]" />
-              <span>{property.rating}</span>
+              <span>{property.rating || 4.5}</span>
               <span className="text-[#8A96A3] font-normal">/ 5.0</span>
             </div>
             <div className="text-[11px] text-[#596573]">
@@ -150,15 +156,16 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
         <div className="pt-2 flex items-center gap-2">
           <Link
             href={`/student/property/${property.id}`}
-            className="btn-primary flex-1 py-2 text-xs font-bold shadow-none"
+            className="btn-primary flex-1 py-2 text-xs font-bold shadow-none text-center"
           >
             View Details
           </Link>
           <Link
             href={`/student/compare?add=${property.id}`}
-            className="btn-secondary py-2 px-3 text-xs font-bold"
+            className="btn-secondary py-2 px-3 text-xs font-bold flex items-center gap-1"
             title="Compare with other properties"
           >
+            <Columns className="w-3.5 h-3.5" />
             Compare
           </Link>
         </div>
@@ -173,7 +180,7 @@ export default function PropertyCard({ result, rank }: PropertyCardProps) {
           </div>
           {property.blockchainTx ? (
             <span className="text-[10px] text-[#596573] font-medium">
-              Audit Record Stamped
+              Audit Stamped
             </span>
           ) : null}
         </div>

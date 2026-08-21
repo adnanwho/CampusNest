@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   Building2, 
   Search, 
@@ -15,7 +16,6 @@ import {
   Home,
   LogOut
 } from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { getStoredUser, logout } from "@/lib/api";
 
@@ -32,6 +32,7 @@ interface PortalNavProps {
 
 export default function PortalNav({ role, userName }: PortalNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const storedUser = getStoredUser();
   const displayName = storedUser?.name ?? userName ?? "CampusNest User";
@@ -58,6 +59,11 @@ export default function PortalNav({ role, userName }: PortalNavProps) {
     STUDENT: "bg-[#EBF8F0] text-[#2A8C50] border-[#39B86B]/30",
     LISTER: "bg-[#FFF8E7] text-[#D49B24] border-[#FFC857]/40",
     ADMIN: "bg-slate-100 text-slate-800 border-slate-300",
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
   };
 
   return (
@@ -108,15 +114,14 @@ export default function PortalNav({ role, userName }: PortalNavProps) {
               </span>
             </div>
 
-            <Link
-              href="/"
-              onClick={logout}
+            <button
+              onClick={handleLogout}
               className="inline-flex items-center gap-1 text-xs text-[#596573] hover:text-[#E63946] font-bold px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
               title="Sign out & return home"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Exit</span>
-            </Link>
+            </button>
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}

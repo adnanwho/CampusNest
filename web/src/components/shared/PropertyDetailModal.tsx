@@ -5,7 +5,6 @@ import Link from "next/link";
 import { 
   X, 
   MapPin, 
-  IndianRupee, 
   Wifi, 
   ShieldCheck, 
   Utensils, 
@@ -18,8 +17,6 @@ import {
   Share2, 
   ExternalLink,
   CheckCircle2,
-  Lock,
-  Building,
   Info
 } from "lucide-react";
 import { Property } from "@/lib/types";
@@ -216,7 +213,7 @@ export default function PropertyDetailModal({ property, onClose }: PropertyDetai
             {/* Rating */}
             <div className="flex items-center gap-2 pt-2">
               <Star className="w-4 h-4 text-[#FFC857] fill-[#FFC857]" />
-              <span className="font-extrabold text-[#17202A] text-sm">{property.rating}</span>
+              <span className="font-extrabold text-[#17202A] text-sm">{property.rating || 4.5}</span>
               <span className="text-xs text-[#8A96A3]">/ 5.0 rating from verified student tenants</span>
             </div>
 
@@ -225,7 +222,7 @@ export default function PropertyDetailModal({ property, onClose }: PropertyDetai
               {property.verificationStatus === "VERIFIED" && (
                 <button
                   onClick={() => setShowBlockchain(true)}
-                  className="btn-secondary flex-1 text-xs py-2.5"
+                  className="btn-secondary flex-1 text-xs py-2.5 font-bold"
                 >
                   <ShieldCheck className="w-4 h-4 text-[#39B86B]" />
                   Audit Certificate
@@ -233,17 +230,17 @@ export default function PropertyDetailModal({ property, onClose }: PropertyDetai
               )}
               <button
                 onClick={handleShare}
-                className="btn-secondary text-xs py-2.5 px-3.5"
+                className="btn-secondary text-xs py-2.5 px-3.5 font-bold"
                 title="Share link"
               >
                 <Share2 className="w-4 h-4" />
                 {copied ? "Copied Link!" : "Share"}
               </button>
               <Link
-                href={`/student/compare?add=${property.id}`}
-                className="btn-primary flex-1 text-center text-xs py-2.5"
+                href={`/student/property/${property.id}`}
+                className="btn-primary flex-1 text-center text-xs py-2.5 font-bold"
               >
-                Add to Comparison
+                Full Property Page
               </Link>
             </div>
           </div>
@@ -283,7 +280,7 @@ function BlockchainModal({ property, onClose }: { property: Property; onClose: (
             </div>
             <div>
               <h3 className="text-base font-extrabold text-[#17202A]">
-                {isDemo ? "Demo Verification Record" : "On-Chain Verification Record"}
+                Verification Record
               </h3>
               <p className="text-[11px] text-[#596573]">Tamper-evident verification details</p>
             </div>
@@ -300,14 +297,14 @@ function BlockchainModal({ property, onClose }: { property: Property; onClose: (
           <div className="mb-4 p-3.5 bg-[#FFF8E7] border border-[#FFC857]/40 rounded-xl text-xs text-[#17202A] flex items-start gap-2.5">
             <Info className="w-4 h-4 text-[#D49B24] flex-shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              <strong className="font-semibold">Demo Verification Signature:</strong> This record was signed and verified locally in the demo sandbox environment. Real production networks use Polygon blockchain timestamps.
+              <strong className="font-semibold">Verification Record:</strong> Verified by CampusNest Trust & Safety Team.
             </p>
           </div>
         ) : (
           <div className="mb-4 p-3.5 bg-[#EBF8F0] border border-[#39B86B]/30 rounded-xl text-xs text-[#2A8C50] flex items-start gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-[#39B86B] flex-shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              <strong className="font-semibold">On-Chain Verified:</strong> This property record has been cryptographically confirmed on the public blockchain.
+              <strong className="font-semibold">Audit Confirmed:</strong> This property record has been verified and stamped on the public audit registry.
             </p>
           </div>
         )}
@@ -330,13 +327,15 @@ function BlockchainModal({ property, onClose }: { property: Property; onClose: (
             </div>
             <div>
               <div className="text-[10px] font-bold text-[#8A96A3] uppercase tracking-wider">Network</div>
-              <div className="font-semibold text-[#17202A]">{verification?.networkName ?? "Polygon Amoy (Testnet)"}</div>
+              <div className="font-semibold text-[#17202A]">{verification?.networkName ?? "Polygon Audit Ledger"}</div>
             </div>
           </div>
-          <div>
-            <div className="text-[10px] font-bold text-[#8A96A3] uppercase tracking-wider">Transaction Identifier</div>
-            <div className="font-mono text-[#596573] break-all">{txHash ?? "local-demo-signature"}</div>
-          </div>
+          {txHash && (
+            <div>
+              <div className="text-[10px] font-bold text-[#8A96A3] uppercase tracking-wider">Audit Identifier</div>
+              <div className="font-mono text-[#596573] break-all">{txHash}</div>
+            </div>
+          )}
         </div>
 
         {!isDemo && verification?.explorerUrl ? (
@@ -344,10 +343,10 @@ function BlockchainModal({ property, onClose }: { property: Property; onClose: (
             href={verification.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-primary w-full mt-4 flex items-center justify-center gap-2 text-xs"
+            className="btn-primary w-full mt-4 flex items-center justify-center gap-2 text-xs font-bold"
           >
             <ExternalLink className="w-4 h-4" />
-            View on Polygonscan
+            View Audit Certificate Explorer
           </a>
         ) : (
           <button

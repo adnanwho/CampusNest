@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Building2, Save, CheckCircle2, Trash2 } from "lucide-react";
+import { ArrowLeft, Building2, Save, CheckCircle2 } from "lucide-react";
 import { getProperty, updateListing } from "@/lib/api";
 import type { Property } from "@/lib/types";
 
@@ -47,7 +47,6 @@ const facilityOptions = [
 export default function EditPropertyPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const router = useRouter();
   const [property, setProperty] = useState<Property | null>(null);
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState<string | null>(null);
@@ -55,8 +54,10 @@ export default function EditPropertyPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     getProperty(id)
       .then((data) => {
+        if (!isMounted) return;
         setProperty(data);
         setForm({
           name: data.name ?? "",
@@ -80,7 +81,13 @@ export default function EditPropertyPage() {
           facilities: data.facilities ?? [],
         });
       })
-      .catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Unable to load property"));
+      .catch((requestError) => {
+        if (isMounted) setError(requestError instanceof Error ? requestError.message : "Unable to load property");
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   function updateField(field: keyof typeof form, value: string) {
@@ -130,7 +137,7 @@ export default function EditPropertyPage() {
     return (
       <div className="max-w-3xl mx-auto space-y-4">
         <p className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">{error}</p>
-        <Link href="/lister" className="btn-primary text-xs inline-block">Back to My Properties</Link>
+        <Link href="/lister" className="btn-primary text-xs py-2 px-4 inline-block font-bold">Back to My Properties</Link>
       </div>
     );
   }
@@ -224,6 +231,17 @@ export default function EditPropertyPage() {
                 value={form.address}
                 onChange={(e) => updateField("address", e.target.value)}
                 type="text"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
+                Description
+              </label>
+              <textarea
+                rows={3}
+                value={form.description}
+                onChange={(e) => updateField("description", e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none"
               />
             </div>

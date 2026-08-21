@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getStoredUser, logout } from "@/lib/api";
+import { getStoredUser } from "@/lib/api";
 import type { UserRole } from "@/lib/types";
 
 interface RouteGuardProps {
@@ -12,28 +12,53 @@ interface RouteGuardProps {
 
 export default function RouteGuard({ children, allowedRoles }: RouteGuardProps) {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const user = getStoredUser();
-    if (!user) {
-      router.replace("/");
-      return;
-    }
-    if (!allowedRoles.some((r) => r.toUpperCase() === user.role.toUpperCase())) {
-      logout();
-      router.replace("/");
-      return;
-    }
-    setAuthorized(true);
-    setChecking(false);
+    let isMounted = true;
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      const user = getStoredUser();
+      if (!user) {
+        if (allowedRoles.includes("STUDENT")) {
+          router.replace("/register?role=STUDENT");
+        } else if (allowedRoles.includes("LISTER")) {
+          router.replace("/register?role=LISTER");
+        } else {
+          router.replace("/login");
+        }
+        setAuthorized(false);
+        return;
+      }
+
+      const hasAllowedRole = allowedRoles.some(
+        (r) => r.toUpperCase() === user.role.toUpperCase()
+      );
+
+      if (!hasAllowedRole) {
+        const userRole = user.role.toLowerCase();
+        if (userRole === "student" || userRole === "lister" || userRole === "admin") {
+          router.replace(`/${userRole}`);
+        } else {
+          router.replace("/login");
+        }
+        setAuthorized(false);
+        return;
+      }
+
+      setAuthorized(true);
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, [router, allowedRoles]);
 
-  if (checking) {
+  if (authorized === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#F7F5EF] flex flex-col items-center justify-center">
+        <div className="w-9 h-9 border-3 border-[#39B86B] border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-xs font-bold text-[#596573]">Verifying session...</p>
       </div>
     );
   }

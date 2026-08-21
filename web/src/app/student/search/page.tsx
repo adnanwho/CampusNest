@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Filter, RotateCcw, Building2, MapPin, IndianRupee } from "lucide-react";
+import { Search, Filter, RotateCcw, MapPin } from "lucide-react";
 import { getProperties } from "@/lib/api";
 import type { Property, MatchResult } from "@/lib/types";
 import PropertyCard from "@/components/shared/PropertyCard";
@@ -21,18 +21,43 @@ function SearchContent() {
   });
 
   useEffect(() => {
-    loadProperties();
-  }, []);
+    let isMounted = true;
+    const params: { locality?: string; budgetMin?: number; budgetMax?: number; type?: string } = {};
+    if (filters.locality) params.locality = filters.locality;
+    if (filters.budgetMin) params.budgetMin = Number(filters.budgetMin);
+    if (filters.budgetMax) params.budgetMax = Number(filters.budgetMax);
+    if (filters.type) params.type = filters.type;
 
-  async function loadProperties() {
+    getProperties(params)
+      .then((data) => {
+        if (isMounted) {
+          setProperties(data);
+          setError(null);
+        }
+      })
+      .catch((requestError) => {
+        if (isMounted) {
+          setError(requestError instanceof Error ? requestError.message : "Unable to load properties");
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [filters]);
+
+  async function executeSearch(currentFilters = filters) {
     setLoading(true);
     setError(null);
     try {
       const params: { locality?: string; budgetMin?: number; budgetMax?: number; type?: string } = {};
-      if (filters.locality) params.locality = filters.locality;
-      if (filters.budgetMin) params.budgetMin = Number(filters.budgetMin);
-      if (filters.budgetMax) params.budgetMax = Number(filters.budgetMax);
-      if (filters.type) params.type = filters.type;
+      if (currentFilters.locality) params.locality = currentFilters.locality;
+      if (currentFilters.budgetMin) params.budgetMin = Number(currentFilters.budgetMin);
+      if (currentFilters.budgetMax) params.budgetMax = Number(currentFilters.budgetMax);
+      if (currentFilters.type) params.type = currentFilters.type;
       const data = await getProperties(params);
       setProperties(data);
     } catch (requestError) {
@@ -47,8 +72,9 @@ function SearchContent() {
   }
 
   function resetFilters() {
-    setFilters({ locality: "", budgetMin: "", budgetMax: "", type: "" });
-    getProperties({}).then(setProperties).catch(() => setProperties([]));
+    const emptyFilters = { locality: "", budgetMin: "", budgetMax: "", type: "" };
+    setFilters(emptyFilters);
+    executeSearch(emptyFilters);
   }
 
   const results: MatchResult[] = properties.map((property) => ({
@@ -138,14 +164,14 @@ function SearchContent() {
           <button
             onClick={resetFilters}
             type="button"
-            className="text-xs font-bold text-[#596573] hover:text-[#17202A] flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-xs font-bold text-[#596573] hover:text-[#17202A] flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reset Filters
           </button>
           <button
-            onClick={loadProperties}
-            className="btn-primary text-xs py-2 px-5 font-bold"
+            onClick={() => executeSearch()}
+            className="btn-primary text-xs py-2 px-5 font-bold flex items-center gap-1.5 cursor-pointer"
           >
             <Search className="w-3.5 h-3.5" />
             Apply Search
@@ -183,7 +209,7 @@ function SearchContent() {
           <p className="text-xs text-[#596573] mb-6">
             We couldn&apos;t find verified stays matching those exact criteria. Try broadening your budget or location.
           </p>
-          <button onClick={resetFilters} className="btn-secondary text-xs py-2 px-4">
+          <button onClick={resetFilters} className="btn-secondary text-xs py-2 px-4 font-bold cursor-pointer">
             Clear all filters
           </button>
         </div>
@@ -206,7 +232,7 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<p className="text-slate-500">Loading search portal...</p>}>
+    <Suspense fallback={<p className="text-xs text-[#8A96A3]">Loading search portal...</p>}>
       <SearchContent />
     </Suspense>
   );

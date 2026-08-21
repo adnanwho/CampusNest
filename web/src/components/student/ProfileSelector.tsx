@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { SlidersHorizontal, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { getStudentProfile } from "@/lib/api";
 import type { StudentProfile } from "@/lib/types";
 

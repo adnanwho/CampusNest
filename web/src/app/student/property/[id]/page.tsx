@@ -14,9 +14,8 @@ import {
   ExternalLink, 
   ArrowLeft, 
   Sparkles, 
-  CheckCircle2, 
-  Building2,
-  Columns
+  Columns,
+  Check
 } from "lucide-react";
 
 export default function PropertyDetailPage() {
@@ -26,16 +25,25 @@ export default function PropertyDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     getProperty(id)
-      .then(setProperty)
-      .catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Unable to load property"));
+      .then((data) => {
+        if (isMounted) setProperty(data);
+      })
+      .catch((requestError) => {
+        if (isMounted) setError(requestError instanceof Error ? requestError.message : "Unable to load property");
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   if (error) {
     return (
       <div className="max-w-4xl mx-auto text-center py-16">
         <p className="text-sm font-bold text-red-600 mb-4">{error}</p>
-        <Link href="/student" className="btn-primary text-xs">Back to Discover</Link>
+        <Link href="/student" className="btn-primary text-xs py-2 px-4 font-bold inline-block">Back to Discover</Link>
       </div>
     );
   }
@@ -58,7 +66,7 @@ export default function PropertyDetailPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Top back button */}
       <div>
-        <Link href="/student" className="inline-flex items-center gap-1 text-xs font-bold text-[#596573] hover:text-[#17202A] transition-colors">
+        <Link href="/student" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#596573] hover:text-[#17202A] transition-colors">
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Discover Stays
         </Link>
@@ -92,11 +100,13 @@ export default function PropertyDetailPage() {
               </p>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-[#E5E0D8] text-right flex-shrink-0">
-              <div className="text-xs font-bold text-[#8A96A3] uppercase tracking-wider">CampusNest Match</div>
-              <div className="text-2xl font-black text-[#2A8C50]">{score}%</div>
-              <div className="text-[10px] text-[#596573]">5-Factor Profile Fit</div>
-            </div>
+            {score > 0 && (
+              <div className="bg-white p-4 rounded-2xl border border-[#E5E0D8] text-right flex-shrink-0">
+                <div className="text-xs font-bold text-[#8A96A3] uppercase tracking-wider">CampusNest Match</div>
+                <div className="text-2xl font-black text-[#2A8C50]">{score}%</div>
+                <div className="text-[10px] text-[#596573]">5-Factor Profile Fit</div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -189,7 +199,7 @@ export default function PropertyDetailPage() {
                   key={facility}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7F5EF] text-[#17202A] text-xs font-semibold border border-[#E5E0D8]"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#39B86B]" />
+                  <Check className="w-3.5 h-3.5 text-[#39B86B]" />
                   {facility}
                 </span>
               ))}
@@ -235,7 +245,7 @@ export default function PropertyDetailPage() {
           <div className="flex items-center justify-between pt-6 border-t border-[#E5E0D8]">
             <div className="flex items-center gap-1.5">
               <Star className="w-4 h-4 text-[#FFC857] fill-[#FFC857]" />
-              <span className="font-extrabold text-sm text-[#17202A]">{property.rating}</span>
+              <span className="font-extrabold text-sm text-[#17202A]">{property.rating || 4.5}</span>
               <span className="text-xs text-[#8A96A3]">/ 5.0</span>
             </div>
             <div className="flex gap-3">

@@ -1,9 +1,9 @@
 "use client";
 
-import { createListing, submitForVerification } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Building2, Send, Save, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowLeft, Building2, Send, Save, CheckCircle2 } from "lucide-react";
+import { createListing, submitForVerification } from "@/lib/api";
 
 const initialForm = {
   name: "",
@@ -187,6 +187,18 @@ export default function AddPropertyPage() {
                 type="text"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none"
                 placeholder="Plot No. 42, Institutional Area, Knowledge Park III"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-[#596573] uppercase tracking-wider mb-1.5">
+                Description
+              </label>
+              <textarea
+                rows={3}
+                value={form.description}
+                onChange={(e) => updateField("description", e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E0D8] bg-[#F7F5EF]/40 text-sm font-medium text-[#17202A] focus:border-[#39B86B] focus:ring-2 focus:ring-[#39B86B]/20 outline-none"
+                placeholder="Describe facilities, nearby campuses, student rules, and highlights..."
               />
             </div>
           </div>

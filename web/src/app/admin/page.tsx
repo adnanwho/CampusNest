@@ -7,13 +7,8 @@ import {
   X, 
   Eye, 
   Clock, 
-  Building2, 
   MapPin, 
-  IndianRupee, 
-  CheckCircle2, 
-  AlertTriangle,
-  FileText,
-  Lock
+  CheckCircle2
 } from "lucide-react";
 import { approveVerification, getPendingVerifications, rejectVerification } from "@/lib/api";
 import type { Property } from "@/lib/types";
@@ -28,20 +23,22 @@ export default function AdminVerificationPortal() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    loadQueue();
-  }, []);
+    let isMounted = true;
+    getPendingVerifications()
+      .then((data) => {
+        if (isMounted) setProperties(data);
+      })
+      .catch(() => {
+        if (isMounted) setProperties([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
 
-  async function loadQueue() {
-    setLoading(true);
-    try {
-      const data = await getPendingVerifications();
-      setProperties(data);
-    } catch {
-      setProperties([]);
-    } finally {
-      setLoading(false);
-    }
-  }
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const pendingProperties = properties.filter(
     (p) => p.verificationStatus === "UNDER_REVIEW" || p.verificationStatus === "SUBMITTED_FOR_VERIFICATION"
@@ -84,7 +81,7 @@ export default function AdminVerificationPortal() {
           Admin Verification Queue
         </h1>
         <p className="text-sm text-[#596573] mt-1">
-          Review accommodation claims, verify transparent pricing schedules, and stamp on-chain audit records.
+          Review accommodation claims, verify transparent pricing schedules, and stamp audit records.
         </p>
       </div>
 

@@ -5,11 +5,7 @@ import Link from "next/link";
 import { 
   Sparkles, 
   Search, 
-  ArrowUpDown, 
-  MapPin, 
-  ShieldCheck, 
-  SlidersHorizontal,
-  Plus
+  Columns
 } from "lucide-react";
 import { getRecommendations, getStudentProfile } from "@/lib/api";
 import type { MatchResult, StudentProfile } from "@/lib/types";
@@ -25,9 +21,10 @@ export default function StudentDiscoverPage() {
   const [sortBy, setSortBy] = useState<"match" | "price" | "distance">("match");
 
   useEffect(() => {
-    setLoading(true);
+    let isMounted = true;
     Promise.all([getStudentProfile(), getRecommendations()])
       .then(([student, properties]) => {
+        if (!isMounted) return;
         setProfile(student);
         const mapped: MatchResult[] = properties.map((property) => ({
           property,
@@ -37,11 +34,16 @@ export default function StudentDiscoverPage() {
         setResults(mapped);
       })
       .catch((requestError) => {
+        if (!isMounted) return;
         setError(requestError instanceof Error ? requestError.message : "Unable to load recommendations");
       })
       .finally(() => {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const sortedResults = [...results].sort((a, b) => {
@@ -124,8 +126,9 @@ export default function StudentDiscoverPage() {
           </Link>
           <Link
             href="/student/compare"
-            className="btn-primary text-xs py-1.5 px-3 font-bold"
+            className="btn-primary text-xs py-1.5 px-3 font-bold flex items-center gap-1.5"
           >
+            <Columns className="w-3.5 h-3.5" />
             Side-by-Side Compare
           </Link>
         </div>
@@ -173,7 +176,7 @@ export default function StudentDiscoverPage() {
           <p className="text-xs text-[#596573] mb-6">
             Try adjusting your profile budget, preferred locality, or exploring custom search filters.
           </p>
-          <Link href="/student/profile" className="btn-primary text-xs py-2 px-4">
+          <Link href="/student/profile" className="btn-primary text-xs py-2 px-4 font-bold">
             Adjust Profile Preferences
           </Link>
         </div>

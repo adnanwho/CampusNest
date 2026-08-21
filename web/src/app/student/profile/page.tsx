@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Sparkles, Check, Edit3, Save, X, Building2, MapPin, Calendar, Wallet } from "lucide-react";
+import { User, Check, Edit3, Building2 } from "lucide-react";
 import { getStudentProfile, updateStudentProfile } from "@/lib/api";
 import type { StudentProfile, PropertyType } from "@/lib/types";
 
@@ -36,8 +36,10 @@ export default function StudentProfilePage() {
   });
 
   useEffect(() => {
+    let isMounted = true;
     getStudentProfile()
       .then((data) => {
+        if (!isMounted) return;
         setProfile(data);
         const tags = Array.isArray(data.lifestyleTags)
           ? data.lifestyleTags
@@ -54,7 +56,14 @@ export default function StudentProfilePage() {
           lifestyleTags: tags,
         });
       })
-      .catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Unable to load profile"));
+      .catch((requestError) => {
+        if (!isMounted) return;
+        setError(requestError instanceof Error ? requestError.message : "Unable to load profile");
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   function updateField(field: keyof typeof form, value: string) {
